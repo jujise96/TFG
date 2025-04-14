@@ -1,4 +1,11 @@
+using Microsoft.EntityFrameworkCore;
+using TFG.Data;
+
 var builder = WebApplication.CreateBuilder(args);
+
+//Asignacion de la Cadena de Conexión
+builder.Services.AddDbContext<TFGContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Cadena de Conexión 'DevelopmentConnection' no encontrada")));
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -22,8 +29,9 @@ app.MapStaticAssets();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
+    //pattern: "{controller=Home}/{action=Index}/{id?}").WithStaticAssets();
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
 
 
 app.Run();
