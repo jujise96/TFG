@@ -1,4 +1,4 @@
-﻿@model TFG.Models.Usuario
+﻿@model IniciarSesionViewModel
 
 @{
     ViewData["Title"] = "Iniciar Sesión";
@@ -8,9 +8,9 @@
 
 <form asp-action="InicioSesion" method="post">
     <div class="form-group">
-        <label asp-for="NombreUsuario"></label>
-        <input asp-for="NombreUsuario" class="form-control" />
-        <span asp-validation-for="NombreUsuario" class="text-danger"></span>
+        <label asp-for="Correo"></label>
+        <input asp-for="Correo" class="form-control" />
+        <span asp-validation-for="Correo" class="text-danger"></span>
     </div>
 
     <div class="form-group">

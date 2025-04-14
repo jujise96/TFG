@@ -3,11 +3,18 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TFG.Models
 {
+    using AspNetCoreGeneratedDocument;
     using Microsoft.EntityFrameworkCore;
     using System.ComponentModel.DataAnnotations;
     using System.ComponentModel.DataAnnotations.Schema;
+    using TFG.Repositories;
 
-    public class Usuario
+    public interface IUsuario
+    {
+        Task CrearUsuario(Usuario usuario);
+    }
+
+    public class Usuario : IUsuario
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -53,8 +60,31 @@ namespace TFG.Models
         public string F_Nacimiento { get; set; }
 
         [StringLength(100)]
-        [Display(Name = "Código Plus de Google")]
+        [Display(Name = "Código Plus de Google: https://maps.google.com/pluscodes/")]
         public string GooglePlusCode { get; set; }
+
+        private readonly IRepositorioUsuarios repositorioUsuario;
+
+        public Usuario()
+        {
+            // Constructor por defecto
+        }
+        public Usuario(IRepositorioUsuarios repositorioUsuario)
+        {
+            this.repositorioUsuario = repositorioUsuario;
+        }
+
+        public async Task CrearUsuario(Usuario usuario)
+        {
+            if (repositorioUsuario != null)
+            {
+                await repositorioUsuario.CrearUsuario(usuario);
+            }
+            else
+            {
+                throw new Exception("Repositorio de usuarios no inicializado");
+            }
+        }
     }
 
 
@@ -66,6 +96,15 @@ namespace TFG.Models
 
         [Required]
         public int CP { get; set; }
+
+        public Administrador()
+        {
+            // Constructor por defecto
+        }
+        public Administrador(IRepositorioUsuarios repositorioUsuario) : base(repositorioUsuario)
+        {
+        }
     }
+
 }
 

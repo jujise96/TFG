@@ -11,8 +11,8 @@ using TFG.Data;
 namespace TFG.Migrations
 {
     [DbContext(typeof(TFGContext))]
-    [Migration("20250410182159_InitalCreate")]
-    partial class InitalCreate
+    [Migration("20250414113516_defaultMigration")]
+    partial class defaultMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,7 +33,6 @@ namespace TFG.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Apellido")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -52,7 +51,6 @@ namespace TFG.Migrations
                         .HasColumnType("nvarchar(10)");
 
                     b.Property<string>("GooglePlusCode")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -67,12 +65,10 @@ namespace TFG.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Pais")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Telefono")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 

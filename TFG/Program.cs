@@ -1,5 +1,9 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TFG.Data;
+using TFG.Models;
+using TFG.Repositories;
+using TFG.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +13,23 @@ builder.Services.AddDbContext<TFGContext>(options =>
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddTransient<IRepositorioUsuarios,RepositorioUsuarios>();
+builder.Services.AddTransient<IUsuario, Usuario>();
+builder.Services.AddTransient<IUserStore<Usuario> , PersistenciaUsuario>();
+
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddTransient<SignInManager<Usuario>>();
+
+builder.Services.AddIdentityCore<Usuario>(opciones =>
+{
+    opciones.Password.RequireDigit = false; //NO Requiere Numeros
+    opciones.Password.RequireLowercase = false; //NO Requiere minusculas
+    opciones.Password.RequireUppercase = false; //NO Requiere mayusculas
+    opciones.Password.RequireNonAlphanumeric = false; //NO Requerir alfanumérico
+}).AddErrorDescriber<MensajesDeErrorIdentity>();
+
+
 
 var app = builder.Build();
 

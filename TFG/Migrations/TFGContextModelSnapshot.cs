@@ -30,7 +30,6 @@ namespace TFG.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Apellido")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -49,7 +48,6 @@ namespace TFG.Migrations
                         .HasColumnType("nvarchar(10)");
 
                     b.Property<string>("GooglePlusCode")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -64,12 +62,10 @@ namespace TFG.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Pais")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Telefono")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 

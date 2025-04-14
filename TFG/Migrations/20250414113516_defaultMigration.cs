@@ -5,7 +5,7 @@
 namespace TFG.Migrations
 {
     /// <inheritdoc />
-    public partial class InitalCreate : Migration
+    public partial class defaultMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,13 +18,13 @@ namespace TFG.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     NombreUsuario = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Nombre = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Apellido = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Apellido = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     Correo = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Contrasena = table.Column<string>(type: "NVarChar(Max)", nullable: false),
-                    Telefono = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Pais = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Telefono = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    Pais = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     F_Nacimiento = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
-                    GooglePlusCode = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
+                    GooglePlusCode = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
                 },
                 constraints: table =>
                 {
