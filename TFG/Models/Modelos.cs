@@ -23,7 +23,7 @@ namespace TFG.Models
         [Required(ErrorMessage = "El nombre de usuario es requerido")]
         [StringLength(50)]
         [Display(Name = "Nombre de Usuario")]
-        //nombre de usuario debe ser unico to do
+        [RegularExpression(@"^[^@]+$", ErrorMessage = "El nombre de usuario no puede contener el carácter '@'")]
         public string NombreUsuario { get; set; }
 
         [Required(ErrorMessage = "El nombre es obligatorio")]

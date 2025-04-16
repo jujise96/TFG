@@ -29,7 +29,13 @@ builder.Services.AddIdentityCore<Usuario>(opciones =>
     opciones.Password.RequireNonAlphanumeric = false; //NO Requerir alfanumérico
 }).AddErrorDescriber<MensajesDeErrorIdentity>();
 
-
+//Configuracion del servicio de autentificacion de la Coockie
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultSignOutScheme = IdentityConstants.ApplicationScheme;
+}).AddCookie(IdentityConstants.ApplicationScheme);
 
 var app = builder.Build();
 

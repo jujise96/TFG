@@ -7,6 +7,7 @@
 <h2>Crear Usuario</h2>
 
 <form asp-action="AltaUsuario" method="post">
+    <div asp-validation-summary="ModelOnly"></div>
     <div class="form-group">
         <label asp-for="NombreUsuario"></label>
         <input asp-for="NombreUsuario" class="form-control" />

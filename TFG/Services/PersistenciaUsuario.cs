@@ -16,7 +16,7 @@ namespace TFG.Services
         public async Task<IdentityResult> CreateAsync(Usuario user, CancellationToken cancellationToken)
         {
             await _usuario.CrearUsuario(user);
-            throw new NotImplementedException();
+            return IdentityResult.Success;
         }
 
         public Task<IdentityResult> DeleteAsync(Usuario user, CancellationToken cancellationToken)
@@ -28,19 +28,19 @@ namespace TFG.Services
         {
         }
 
-        public Task<Usuario> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
+        public async Task<Usuario> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return await _usuario.ObtenerUsuarioPorCorreo(normalizedEmail);
         }
 
         public Task<Usuario> FindByIdAsync(string userId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return _usuario.ObtenerUsuarioPorId(int.Parse(userId));
         }
 
         public Task<Usuario> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return _usuario.ObtenerUsuarioPorNombreusuario(normalizedUserName);
         }
 
         public Task<string> GetEmailAsync(Usuario user, CancellationToken cancellationToken)
@@ -85,12 +85,13 @@ namespace TFG.Services
 
         public Task SetEmailAsync(Usuario user, string email, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            user.Correo = email;
+            return Task.CompletedTask;
         }
 
         public Task SetEmailConfirmedAsync(Usuario user, bool confirmed, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
         public Task SetNormalizedEmailAsync(Usuario user, string normalizedEmail, CancellationToken cancellationToken)
@@ -111,7 +112,8 @@ namespace TFG.Services
 
         public Task SetUserNameAsync(Usuario user, string userName, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            user.NombreUsuario = userName;
+            return Task.CompletedTask;
         }
 
         public Task<IdentityResult> UpdateAsync(Usuario user, CancellationToken cancellationToken)

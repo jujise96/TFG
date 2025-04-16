@@ -5,11 +5,10 @@ namespace TFG.Models
 {
     public class IniciarSesionViewModel
     {
-        [Required(ErrorMessage = "El correo electrónico es obligatorio")]
-        [EmailAddress(ErrorMessage = "El correo no tiene un formato válido")]
+        [Required(ErrorMessage = "El correo electrónico o nombre de usuario es obligatorio")]
         [StringLength(100)]
-        [Display(Name = "Correo Electrónico")]
-        public string Correo { get; set; }
+        [Display(Name = "Correo Electrónico o nombre de usuario")]
+        public string mailusername { get; set; }
 
         [Required(ErrorMessage = "La contraseña es obligatoria")]
         [Column(TypeName = "NVarChar(Max)")]
