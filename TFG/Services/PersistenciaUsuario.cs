@@ -4,13 +4,29 @@ using TFG.Repositories;
 
 namespace TFG.Services
 {
-    public class PersistenciaUsuario : IUserStore<Usuario>, IUserEmailStore<Usuario>, IUserPasswordStore<Usuario>
+    public class PersistenciaUsuario : IUserStore<Usuario>, IUserEmailStore<Usuario>, IUserPasswordStore<Usuario>, IUserRoleStore<Usuario>
     {
         private readonly IRepositorioUsuarios _usuario;
+        private readonly IRepositorioRol _rol;
 
-        public PersistenciaUsuario(IRepositorioUsuarios usuario)
+        public PersistenciaUsuario(IRepositorioUsuarios usuario, IRepositorioRol rol)
         {
             _usuario = usuario;
+            _rol = rol;
+        }
+
+        public async Task AddToRoleAsync(Usuario user, string roleName, CancellationToken cancellationToken)
+        {
+            var rol = await _rol.ObtenerRolPorNombre(roleName);
+            if (rol == null)
+            {
+                throw new InvalidOperationException("El rol no existe");
+            }
+            else
+            {
+                user.RolId = rol.Id;
+                await _usuario.ActualizarUsuario(user.Id, user.RolId);
+            }
         }
 
         public async Task<IdentityResult> CreateAsync(Usuario user, CancellationToken cancellationToken)
@@ -68,6 +84,16 @@ namespace TFG.Services
             return Task.FromResult(user.Contrasena);
         }
 
+        public async Task<IList<string>> GetRolesAsync(Usuario user, CancellationToken cancellationToken)
+        {
+            if (user.RolId.HasValue)
+            {
+                var rol = await _rol.ObtenerRolPorId(user.RolId.Value);
+                return new List<string> { rol?.Nombre };
+            }
+            return new List<string>();
+        }
+
         public Task<string> GetUserIdAsync(Usuario user, CancellationToken cancellationToken)
         {
             return Task.FromResult(user.Id.ToString());
@@ -78,7 +104,23 @@ namespace TFG.Services
             return Task.FromResult(user.NombreUsuario);
         }
 
+        public Task<IList<Usuario>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<bool> HasPasswordAsync(Usuario user, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<bool> IsInRoleAsync(Usuario user, string roleName, CancellationToken cancellationToken)
+        {
+            var rol = await _rol.ObtenerRolPorNombre(roleName);
+            return (rol != null && user.RolId == rol.Id);
+        }
+
+        public Task RemoveFromRoleAsync(Usuario user, string roleName, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
@@ -118,7 +160,7 @@ namespace TFG.Services
 
         public Task<IdentityResult> UpdateAsync(Usuario user, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(IdentityResult.Success);
         }
     }
 }

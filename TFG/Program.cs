@@ -14,8 +14,8 @@ builder.Services.AddDbContext<TFGContext>(options =>
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddTransient<IRepositorioUsuarios,RepositorioUsuarios>();
-builder.Services.AddTransient<IUsuario, Usuario>();
 builder.Services.AddTransient<IUserStore<Usuario> , PersistenciaUsuario>();
+builder.Services.AddTransient<IRepositorioRol, RepositorioRol>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -38,6 +38,25 @@ builder.Services.AddAuthentication(options =>
 }).AddCookie(IdentityConstants.ApplicationScheme);
 
 var app = builder.Build();
+//Insercion automatica de los Roles
+using (var scope = app.Services.CreateScope())
+{
+    var rolRepo = scope.ServiceProvider.GetRequiredService<IRepositorioRol>();
+    var rolesPredeterminados = new List<Roles>
+    {
+        new Roles { Id = 1, Nombre = "Admin", NombreNormalizado = "ADMIN" },
+        new Roles { Id = 2, Nombre = "Usuario", NombreNormalizado = "USUARIO" }
+    };
+
+    foreach (var roles in rolesPredeterminados)
+    {
+        var existe = await rolRepo.ExisteRol(roles.NombreNormalizado);
+        if (!existe)
+        {
+            await rolRepo.InsertarRol(roles);
+        }
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

@@ -9,12 +9,8 @@ namespace TFG.Models
     using System.ComponentModel.DataAnnotations.Schema;
     using TFG.Repositories;
 
-    public interface IUsuario
-    {
-        Task CrearUsuario(Usuario usuario);
-    }
 
-    public class Usuario : IUsuario
+    public class Usuario
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -63,28 +59,11 @@ namespace TFG.Models
         [Display(Name = "Código Plus de Google: https://maps.google.com/pluscodes/")]
         public string GooglePlusCode { get; set; }
 
-        private readonly IRepositorioUsuarios repositorioUsuario;
+        public int? RolId { get; set; }
+        public Roles Rol { get; set; } = new Roles();
 
-        public Usuario()
-        {
-            // Constructor por defecto
-        }
-        public Usuario(IRepositorioUsuarios repositorioUsuario)
-        {
-            this.repositorioUsuario = repositorioUsuario;
-        }
-
-        public async Task CrearUsuario(Usuario usuario)
-        {
-            if (repositorioUsuario != null)
-            {
-                await repositorioUsuario.CrearUsuario(usuario);
-            }
-            else
-            {
-                throw new Exception("Repositorio de usuarios no inicializado");
-            }
-        }
+        public ICollection<UsuarioMisionCompletada>? MisionesCompletadas { get; set; } = new List<UsuarioMisionCompletada>();
+        public ICollection<UsuarioItemCompletado>? ItemsCompletados { get; set; } = new List<UsuarioItemCompletado>();
     }
 
 
@@ -96,15 +75,141 @@ namespace TFG.Models
 
         [Required]
         public int CP { get; set; }
-
-        public Administrador()
-        {
-            // Constructor por defecto
-        }
-        public Administrador(IRepositorioUsuarios repositorioUsuario) : base(repositorioUsuario)
-        {
-        }
     }
+
+
+    public class Roles
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
+        public int Id { get; set; }
+        [Required]
+        public string Nombre { get; set; }
+        public string NombreNormalizado { get; set; }
+        public ICollection<Usuario> Usuarios { get; set; } = new List<Usuario>();
+    }
+
+
+
+
+    public enum TipoQuest
+    {
+        Principal,
+        Secundaria,
+        [Display(Name = "Sin marcar")]
+        SinMarcar
+    }
+    public class Juego
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
+
+        [Required]
+        public string IdElem { get; set; }
+
+        public string Nombre { get; set; }
+        public string Descripcion { get; set; }
+
+        public List<string> Quest { get; set; } = new List<string>();
+        public List<string> Item { get; set; } = new List<string>();
+        public string Truco { get; set; }
+    }
+
+    public class Mision
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
+
+        [Required]
+        public string IdElem { get; set; }
+
+        public string Nombre { get; set; }
+        public string Descripcion { get; set; }
+
+        public string Imagen { get; set; }
+
+        public List<string> StartTrigger { get; set; } = new List<string>();
+        public List<string> Bugs { get; set; } = new List<string>();
+
+        [Required]
+        public TipoQuest TipoQuest { get; set; }
+
+        public ICollection<UsuarioMisionCompletada> UsuariosQueLaCompletaron { get; set; } = new List<UsuarioMisionCompletada>();
+
+    }
+
+    public class Item
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
+
+        [Required]
+        public string IdElem { get; set; }
+
+        public string Nombre { get; set; }
+        public string Descripcion { get; set; }
+
+        public string Imagen { get; set; }
+
+        public List<string> Bugs { get; set; } = new List<string>();
+
+        public ICollection<UsuarioItemCompletado> UsuariosQueLoCompletaron { get; set; } = new List<UsuarioItemCompletado>();
+
+    }
+
+    public class Truco
+    {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
+
+        [Required]
+        public string IdElem { get; set; }
+
+        public string Nombre { get; set; }
+        public string Descripcion { get; set; }
+
+        public List<string> Trucos { get; set; } = new List<string>();
+    }
+
+
+    public class UsuarioMisionCompletada
+    {
+        [Key]
+        public int Id { get; set; }
+
+        [Required]
+        public int UsuarioId { get; set; }
+        public Usuario Usuario { get; set; }
+
+        [Required]
+        public int MisionId { get; set; }
+        public Mision Mision { get; set; }
+
+        public DateTime FechaCompletado { get; set; } = DateTime.Now;
+    }
+
+
+    public class UsuarioItemCompletado
+    {
+        [Key]
+        public int Id { get; set; }
+
+        [Required]
+        public int UsuarioId { get; set; }
+        public Usuario Usuario { get; set; }
+
+        [Required]
+        public int ItemId { get; set; }
+        public Item Item { get; set; }
+
+        public DateTime FechaCompletado { get; set; } = DateTime.Now;
+    }
+
+
 
 }
 

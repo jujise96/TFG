@@ -10,6 +10,7 @@ namespace TFG.Repositories
         Task<Usuario> ObtenerUsuarioPorId(int id);
         Task<Usuario> ObtenerUsuarioPorNombreusuario(string nombreUsuario);
         Task<Usuario> ObtenerUsuarioPorCorreo(string correo);
+        Task ActualizarUsuario(int id, int? rolid);
     }
     public class RepositorioUsuarios : IRepositorioUsuarios
     {
@@ -42,6 +43,13 @@ namespace TFG.Repositories
         {
             using var connection = new SqlConnection(connectionString);
             return await connection.QueryFirstOrDefaultAsync<Usuario>(@"SELECT * FROM Usuarios WHERE Correo = @Correo", new { Correo = correo });
+        }
+
+        public async Task ActualizarUsuario(int id, int? rolid)
+        {
+            
+            using var connection = new SqlConnection(connectionString);
+            await connection.ExecuteAsync(@"UPDATE Usuarios SET RolId = @RolId WHERE Id = @Id", new { RolId = rolid,Id=id});
         }
     }
 }

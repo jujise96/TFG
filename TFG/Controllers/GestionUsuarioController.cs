@@ -29,7 +29,16 @@ namespace TFG.Controllers
             {
                 if (usuario.mailusername.Contains("@"))
                 {
-                    usuario.mailusername = userManager.FindByEmailAsync(usuario.mailusername).Result.NombreUsuario;
+                    var usuarioaux = userManager.FindByEmailAsync(usuario.mailusername);
+                    if (usuarioaux.Result == null)
+                    {
+                        ModelState.AddModelError(string.Empty, "El correo electrónico no está registrado.");
+                        return View(usuario);
+                    }
+                    else
+                    {
+                        usuario.mailusername = usuarioaux.Result.NombreUsuario;
+                    }
                 }
                 var result = await signInManager.PasswordSignInAsync(usuario.mailusername, usuario.Contrasena, isPersistent: false, lockoutOnFailure: false);
                 if (result.Succeeded)
@@ -52,12 +61,14 @@ namespace TFG.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AltaUsuario(Usuario usuario)
+        public async Task<IActionResult> AltaUsuario(RegistrarUsuarioViewModel VMusuario)
         {
             if (ModelState.IsValid)
             {
+                var usuario = new Usuario() { NombreUsuario = VMusuario.NombreUsuario, Nombre = VMusuario.Nombre, Apellido = VMusuario.Apellido, Correo = VMusuario.Correo, Contrasena = VMusuario.Contrasena, Telefono = VMusuario.Telefono, Pais = VMusuario.Pais, F_Nacimiento = VMusuario.F_Nacimiento, GooglePlusCode = VMusuario.GooglePlusCode };
                 var result = await userManager.CreateAsync(usuario, password : usuario.Contrasena);
                 if (result.Succeeded) {
+                    await userManager.AddToRoleAsync(usuario, "USUARIO");
                     await signInManager.SignInAsync(usuario, isPersistent: false);
                     return RedirectToAction("Index", "Home");
                 }
@@ -67,10 +78,10 @@ namespace TFG.Controllers
                     {
                         ModelState.AddModelError(string.Empty, error.Description);
                     }
-                    return View(usuario);
+                    return View(VMusuario);
                 }
             }
-                return View(usuario);
+                return View(VMusuario);
         }
 
         [HttpPost]
