@@ -12,8 +12,8 @@ using TFG.Data;
 namespace TFG.Migrations
 {
     [DbContext(typeof(TFGContext))]
-    [Migration("20250420105909_insercionroles")]
-    partial class insercionroles
+    [Migration("20250501105219_addmodels")]
+    partial class addmodels
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -51,7 +51,71 @@ namespace TFG.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Item");
+                    b.ToTable("Items", (string)null);
+                });
+
+            modelBuilder.Entity("TFG.Models.Juego", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Descripcion")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IdElem")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.PrimitiveCollection<string>("Item")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Nombre")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.PrimitiveCollection<string>("Quest")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Truco")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Juego", (string)null);
+                });
+
+            modelBuilder.Entity("TFG.Models.LoginExterno", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
+
+                    b.Property<string>("loginprovider")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("providerDisplayName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("providerKey")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("usuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("usuarioId");
+
+                    b.ToTable("LoginsExternos", (string)null);
                 });
 
             modelBuilder.Entity("TFG.Models.Mision", b =>
@@ -86,7 +150,7 @@ namespace TFG.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Mision");
+                    b.ToTable("Mision", (string)null);
                 });
 
             modelBuilder.Entity("TFG.Models.Roles", b =>
@@ -103,7 +167,33 @@ namespace TFG.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Roles");
+                    b.ToTable("Roles", (string)null);
+                });
+
+            modelBuilder.Entity("TFG.Models.Truco", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Descripcion")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IdElem")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Nombre")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.PrimitiveCollection<string>("Trucos")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Truco", (string)null);
                 });
 
             modelBuilder.Entity("TFG.Models.Usuario", b =>
@@ -127,10 +217,8 @@ namespace TFG.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("F_Nacimiento")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                    b.Property<DateTime?>("F_Nacimiento")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("GooglePlusCode")
                         .HasMaxLength(100)
@@ -233,6 +321,15 @@ namespace TFG.Migrations
                     b.ToTable("Administradores", (string)null);
                 });
 
+            modelBuilder.Entity("TFG.Models.LoginExterno", b =>
+                {
+                    b.HasOne("TFG.Models.Usuario", null)
+                        .WithMany("LoginsExternos")
+                        .HasForeignKey("usuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("TFG.Models.Usuario", b =>
                 {
                     b.HasOne("TFG.Models.Roles", "Rol")
@@ -307,6 +404,8 @@ namespace TFG.Migrations
             modelBuilder.Entity("TFG.Models.Usuario", b =>
                 {
                     b.Navigation("ItemsCompletados");
+
+                    b.Navigation("LoginsExternos");
 
                     b.Navigation("MisionesCompletadas");
                 });

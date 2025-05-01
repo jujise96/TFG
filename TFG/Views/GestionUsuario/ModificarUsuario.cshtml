@@ -1,18 +1,20 @@
-﻿@model TFG.Models.RegistrarUsuarioViewModel
+﻿@model TFG.Models.ModificarUsuarioViewModel
 
 @{
-    ViewData["Title"] = "Crear Usuario";
+    ViewData["Title"] = "Editar Perfil";
 }
 
-<h2>Perfil Usuario</h2>
+<h2>Editar Perfil - @User.Identity.Name</h2>
 @if (ViewData.Keys.Contains("mensaje"))
 {
     <p>@ViewData["mensaje"]</p>
 }
-<form asp-action="AltaUsuario" method="post">
-    <div asp-validation-summary="ModelOnly"></div>
-    <a class="btn btn-success mt-3" asp-action="loginExterno" asp-route-proveedor="Microsoft">Darse de alta con Microsoft</a>
-    <a class="btn btn-success mt-3" asp-action="loginExterno" asp-route-proveedor="Google">Darse de alta con Google</a>
+<form asp-action="ModificarUsuario" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    @* Campo oculto si necesitas el ID del usuario para la edición *@
+    @* <input type="hidden" asp-for="IdUsuario" /> *@
+
     <div class="form-group">
         <label asp-for="NombreUsuario"></label>
         <input asp-for="NombreUsuario" class="form-control" />
@@ -39,7 +41,7 @@
 
     <div class="form-group">
         <label asp-for="Contrasena"></label>
-        <input asp-for="Contrasena" type="password" class="form-control" />
+        <input asp-for="Contrasena" type="password" class="form-control" placeholder="••••••••" />
         <span asp-validation-for="Contrasena" class="text-danger"></span>
     </div>
 
@@ -68,6 +70,7 @@
     </div>
 
     <button type="submit" class="btn btn-primary">Guardar</button>
+    <button type="submit" class="btn btn-primary" asp-action="EliminarUsuario" asp-route-Id="@User.FindFirst("IdUsuario").Value">Eliminar Cuenta</button>
 </form>
 
 @section Scripts {

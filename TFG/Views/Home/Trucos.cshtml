@@ -1,8 +1,20 @@
-﻿@{
-    ViewData["Title"] = "Juego";
+﻿@model Truco
+
+@{
+    ViewData["Title"] = Model.Nombre;
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <h1 class="display-4">Bienvenido a @Model.Nombre</h1>
+    <p>Consulta la información de los trucos del juego.</p>
+</div>
+
+<div class="container mt-4">
+    <h2>Información de la Misión</h2>
+    <ul>
+        <li><strong>Nombre:</strong> @Model.Nombre</li>
+        <li><strong>IdElem:</strong> @Model.IdElem</li>
+        <li><strong>Descripción:</strong> @Model.Descripcion</li>
+        <li><strong>Trucos:</strong> @Model.Trucos</li>
+    </ul>
 </div>

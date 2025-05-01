@@ -22,6 +22,13 @@ namespace TFG.Data
             // Ejemplo: modelBuilder.Entity<Entidad>().ToTable("NombreTabla");
             modelBuilder.Entity<Usuario>().ToTable("Usuarios");
             modelBuilder.Entity<Administrador>().ToTable("Administradores");
+            modelBuilder.Entity<LoginExterno>().ToTable("LoginsExternos");
+            modelBuilder.Entity<Roles>().ToTable("Roles");
+            modelBuilder.Entity<Juego>().ToTable("Juego");
+            modelBuilder.Entity<Item>().ToTable("Items");
+            modelBuilder.Entity<Mision>().ToTable("Mision");
+            modelBuilder.Entity<Truco>().ToTable("Truco");
+
         }
     }
 }

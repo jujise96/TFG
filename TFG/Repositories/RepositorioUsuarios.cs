@@ -10,7 +10,9 @@ namespace TFG.Repositories
         Task<Usuario> ObtenerUsuarioPorId(int id);
         Task<Usuario> ObtenerUsuarioPorNombreusuario(string nombreUsuario);
         Task<Usuario> ObtenerUsuarioPorCorreo(string correo);
-        Task ActualizarUsuario(int id, int? rolid);
+        Task ActualizarRolUsuario(int id, int? rolid);
+        Task ActualizarUsuario(Usuario user);
+        Task EliminarUsuario(Usuario user);
     }
     public class RepositorioUsuarios : IRepositorioUsuarios
     {
@@ -45,11 +47,37 @@ namespace TFG.Repositories
             return await connection.QueryFirstOrDefaultAsync<Usuario>(@"SELECT * FROM Usuarios WHERE Correo = @Correo", new { Correo = correo });
         }
 
-        public async Task ActualizarUsuario(int id, int? rolid)
+        public async Task ActualizarRolUsuario(int id, int? rolid)
         {
             
             using var connection = new SqlConnection(connectionString);
             await connection.ExecuteAsync(@"UPDATE Usuarios SET RolId = @RolId WHERE Id = @Id", new { RolId = rolid,Id=id});
         }
+
+        public async Task ActualizarUsuario(Usuario user)
+        {
+            using var connection = new SqlConnection(connectionString);
+
+            await connection.ExecuteAsync(@"
+        UPDATE Usuarios 
+        SET NombreUsuario = @NombreUsuario,
+            Nombre = @Nombre, 
+            Apellido = @Apellido,
+            Correo = @Correo, 
+            Contrasena = @Contrasena,
+            Telefono = @Telefono,
+            Pais = @Pais,
+            F_Nacimiento = @F_Nacimiento,
+            GooglePlusCode = @GooglePlusCode
+        WHERE Id = @Id", user);
+        }
+
+        public async Task EliminarUsuario(Usuario user)
+        {
+            using var connection = new SqlConnection(connectionString);
+
+            await connection.ExecuteAsync("DELETE FROM Usuarios WHERE Id = @Id", new { user.Id });
+        }
+
     }
 }

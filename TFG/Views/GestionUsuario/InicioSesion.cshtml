@@ -5,7 +5,10 @@
 }
 
 <h2>Iniciar Sesión</h2>
-
+@if (ViewData.Keys.Contains("mensaje"))
+{
+    <p>@ViewData["mensaje"]</p>
+}
 <form asp-action="InicioSesion" method="post">
     <div asp-validation-summary="ModelOnly"></div>
     <div class="form-group">
@@ -21,6 +24,8 @@
     </div>
 
     <button type="submit" class="btn btn-primary mt-3">Iniciar Sesión</button>
+    <a class="btn btn-success mt-3" asp-action="loginExterno" asp-route-proveedor="Microsoft">Iniciar sesion con Microsoft</a>
+    <a class="btn btn-success mt-3" asp-action="loginExterno" asp-route-proveedor="Google">Iniciar sesion con Google</a>
 </form>
 
 @section Scripts {

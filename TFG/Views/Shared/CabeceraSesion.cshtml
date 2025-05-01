@@ -2,10 +2,10 @@
 @inject SignInManager<Usuario> SignInManager
 
 <ul class="navbar-nav">
-    @if (SignInManager.IsSignedIn(User)) //Comprueba si el usuario está autenticado
+    @if (SignInManager.IsSignedIn(User)) //Comprueba si el usuario está autenticado <span class="nav-link text-dark">Perfil, @User.Identity.Name</span>
     {
         <li class="nav-item">
-            <span class="nav-link text-dark">Hola, @User.Identity.Name</span>
+            <a class="nav-link text-dark" asp-area="" asp-controller="GestionUsuario" asp-action="ModificarUsuario" asp-route-Id="@User.FindFirst("IdUsuario").Value">Perfil, @User.Identity.Name</a>
         </li>
         <li class="nav-item">
             <form class="form-inline" asp-action="logout" asp-controller="GestionUsuario">

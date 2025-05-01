@@ -4,15 +4,34 @@ using TFG.Repositories;
 
 namespace TFG.Services
 {
-    public class PersistenciaUsuario : IUserStore<Usuario>, IUserEmailStore<Usuario>, IUserPasswordStore<Usuario>, IUserRoleStore<Usuario>
+    public class PersistenciaUsuario : IUserStore<Usuario>, IUserEmailStore<Usuario>, IUserPasswordStore<Usuario>, IUserRoleStore<Usuario>, IUserLoginStore<Usuario>
     {
         private readonly IRepositorioUsuarios _usuario;
         private readonly IRepositorioRol _rol;
+        private readonly IRepositorioLoginExterno _loginExterno;
 
-        public PersistenciaUsuario(IRepositorioUsuarios usuario, IRepositorioRol rol)
+        public PersistenciaUsuario(IRepositorioUsuarios usuario, IRepositorioRol rol, IRepositorioLoginExterno loginExterno)
         {
             _usuario = usuario;
             _rol = rol;
+            _loginExterno = loginExterno;
+        }
+
+        public async Task<IdentityResult> AddLoginAsync(Usuario user, UserLoginInfo login, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(user);
+            ArgumentNullException.ThrowIfNull(login);
+
+            var loginExterno = new LoginExterno()
+            {
+                usuarioId = user.Id,
+                loginprovider = login.LoginProvider,
+                providerKey = login.ProviderKey,
+                providerDisplayName = login.ProviderDisplayName
+            };
+
+            await _loginExterno.Insertar(loginExterno);
+            return IdentityResult.Success;
         }
 
         public async Task AddToRoleAsync(Usuario user, string roleName, CancellationToken cancellationToken)
@@ -25,7 +44,7 @@ namespace TFG.Services
             else
             {
                 user.RolId = rol.Id;
-                await _usuario.ActualizarUsuario(user.Id, user.RolId);
+                await _usuario.ActualizarRolUsuario(user.Id, user.RolId);
             }
         }
 
@@ -35,9 +54,10 @@ namespace TFG.Services
             return IdentityResult.Success;
         }
 
-        public Task<IdentityResult> DeleteAsync(Usuario user, CancellationToken cancellationToken)
+        public async Task<IdentityResult> DeleteAsync(Usuario user, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            await _usuario.EliminarUsuario(user);
+            return IdentityResult.Success;
         }
 
         public void Dispose()
@@ -54,6 +74,19 @@ namespace TFG.Services
             return _usuario.ObtenerUsuarioPorId(int.Parse(userId));
         }
 
+        public async Task<Usuario> FindByLoginAsync(string loginProvider, string providerKey, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(loginProvider);
+            ArgumentNullException.ThrowIfNull(providerKey);
+
+            var loginExterno = await _loginExterno.ObtenerLoginExterno(loginProvider, providerKey);
+            if (loginExterno == null)
+            {
+                return null;
+            }
+            return await _usuario.ObtenerUsuarioPorId(loginExterno.usuarioId);
+        }
+
         public Task<Usuario> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
         {
             return _usuario.ObtenerUsuarioPorNombreusuario(normalizedUserName);
@@ -67,6 +100,14 @@ namespace TFG.Services
         public Task<bool> GetEmailConfirmedAsync(Usuario user, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<IList<UserLoginInfo>> GetLoginsAsync(Usuario user, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(user);
+
+            var logins = await _loginExterno.ListadoLogins(user.Id);
+            return logins.Select(l => new UserLoginInfo(l.loginprovider, l.providerKey, l.providerDisplayName)).ToList();
         }
 
         public Task<string> GetNormalizedEmailAsync(Usuario user, CancellationToken cancellationToken)
@@ -125,6 +166,15 @@ namespace TFG.Services
             throw new NotImplementedException();
         }
 
+        public async Task RemoveLoginAsync(Usuario user, string loginProvider, string providerKey, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(user);
+            ArgumentNullException.ThrowIfNull(loginProvider);
+            ArgumentNullException.ThrowIfNull(providerKey);
+
+            await _loginExterno.Eliminar(user.Id, loginProvider, providerKey);
+        }
+
         public Task SetEmailAsync(Usuario user, string email, CancellationToken cancellationToken)
         {
             user.Correo = email;
@@ -158,9 +208,15 @@ namespace TFG.Services
             return Task.CompletedTask;
         }
 
-        public Task<IdentityResult> UpdateAsync(Usuario user, CancellationToken cancellationToken)
+        public async Task<IdentityResult> UpdateAsync(Usuario user, CancellationToken cancellationToken)
         {
-            return Task.FromResult(IdentityResult.Success);
+            await _usuario.ActualizarUsuario(user);
+            return IdentityResult.Success;
+        }
+
+        Task IUserLoginStore<Usuario>.AddLoginAsync(Usuario user, UserLoginInfo login, CancellationToken cancellationToken)
+        {
+            return AddLoginAsync(user, login, cancellationToken);
         }
     }
 }

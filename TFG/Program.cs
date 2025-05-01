@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using TFG.Data;
 using TFG.Models;
 using TFG.Repositories;
@@ -16,6 +17,15 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddTransient<IRepositorioUsuarios,RepositorioUsuarios>();
 builder.Services.AddTransient<IUserStore<Usuario> , PersistenciaUsuario>();
 builder.Services.AddTransient<IRepositorioRol, RepositorioRol>();
+builder.Services.AddTransient<IRepositorioLoginExterno, RepositorioLoginExterno>();
+builder.Services.AddTransient<IRepositorioJuego, RepositorioJuego>();
+builder.Services.AddTransient<IJuegoService, JuegoService>();
+builder.Services.AddTransient<IRepositorioMision, RepositorioMision>();
+builder.Services.AddTransient<IMisionService, MisionService>();
+builder.Services.AddTransient<IRepositorioItem, RepositorioItem>();
+builder.Services.AddTransient<IItemService, ItemService>();
+builder.Services.AddTransient<IRepositorioTruco, RepositorioTruco>();
+builder.Services.AddTransient<ITrucoService, TrucoService>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -27,15 +37,30 @@ builder.Services.AddIdentityCore<Usuario>(opciones =>
     opciones.Password.RequireLowercase = false; //NO Requiere minusculas
     opciones.Password.RequireUppercase = false; //NO Requiere mayusculas
     opciones.Password.RequireNonAlphanumeric = false; //NO Requerir alfanumérico
-}).AddErrorDescriber<MensajesDeErrorIdentity>();
+}).AddErrorDescriber<MensajesDeErrorIdentity>()
+.AddDefaultTokenProviders();
 
+builder.Services.AddTransient<IUserClaimsPrincipalFactory<Usuario>, CustomClaimsPrincipalFactory>();
 //Configuracion del servicio de autentificacion de la Coockie
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
     options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
     options.DefaultSignOutScheme = IdentityConstants.ApplicationScheme;
-}).AddCookie(IdentityConstants.ApplicationScheme);
+    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+}).AddCookie(IdentityConstants.ApplicationScheme)
+.AddCookie(IdentityConstants.ExternalScheme)
+.AddMicrosoftAccount(options =>
+{
+    options.ClientId = builder.Configuration["microsoftClient"];
+    options.ClientSecret = builder.Configuration["microsoftSecret"];
+})
+.AddGoogle(options =>
+{
+    options.ClientId = builder.Configuration["googleClient"];
+    options.ClientSecret = builder.Configuration["googleSecret"];
+});
+
 
 var app = builder.Build();
 //Insercion automatica de los Roles

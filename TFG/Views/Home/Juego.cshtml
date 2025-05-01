@@ -1,31 +1,32 @@
 ﻿@model Juego
+
 @{
     ViewData["Title"] = Model.Nombre;
 }
 
 <div class="text-center">
     <h1 class="display-4">Bienvenido a @Model.Nombre</h1>
-    <p>Consulta las misiones, ítems y trucos disponibles.</p>
+    <p>Consulta la información del juego y accede a sus contenidos.</p>
 </div>
 
 <div class="container mt-4">
-    <h2>Misiones</h2>
+    <h2>Información del Juego</h2>
     <ul>
-        @foreach (var quest in Model.Quest)
-        {
-            <li>@quest</li>
-        }
+        <li><strong>Nombre:</strong> @Model.Nombre</li>
+        <li><strong>IdElem:</strong> @Model.IdElem</li>
+        <li><strong>Descripción:</strong> @Model.Descripcion</li>
     </ul>
 
-    <h2>Ítems</h2>
+    <h2>Secciones disponibles</h2>
     <ul>
-        @foreach (var item in Model.Item)
-        {
-            <li>@item</li>
-        }
+        <li>
+            <a asp-controller="Home" asp-action="Misiones" asp-route-id="@Model.Id">Ver Misiones</a>
+        </li>
+        <li>
+            <a asp-controller="Home" asp-action="Items" asp-route-id="@Model.Id">Ver Ítems</a>
+        </li>
+        <li>
+            <a asp-controller="Home" asp-action="Trucos" asp-route-id="@Model.Id">Ver Truco</a>
+        </li>
     </ul>
-
-    <h2>Truco</h2>
-    <p>@Model.Truco</p>
 </div>
-

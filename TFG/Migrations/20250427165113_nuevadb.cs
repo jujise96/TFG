@@ -6,17 +6,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TFG.Migrations
 {
     /// <inheritdoc />
-    public partial class insercionroles : Migration
+    public partial class nuevadb : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<int>(
-                name: "RolId",
-                table: "Usuarios",
-                type: "int",
-                nullable: true);
-
             migrationBuilder.CreateTable(
                 name: "Item",
                 columns: table => new
@@ -64,6 +58,74 @@ namespace TFG.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Roles", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Usuarios",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    NombreUsuario = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Nombre = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Apellido = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    Correo = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Contrasena = table.Column<string>(type: "NVarChar(Max)", nullable: false),
+                    Telefono = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    Pais = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    F_Nacimiento = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    GooglePlusCode = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    RolId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Usuarios", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Usuarios_Roles_RolId",
+                        column: x => x.RolId,
+                        principalTable: "Roles",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Administradores",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false),
+                    Direccion = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    CP = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Administradores", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Administradores_Usuarios_Id",
+                        column: x => x.Id,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LoginsExternos",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    usuarioId = table.Column<int>(type: "int", nullable: false),
+                    loginprovider = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    providerKey = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    providerDisplayName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LoginsExternos", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_LoginsExternos_Usuarios_usuarioId",
+                        column: x => x.usuarioId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -121,9 +183,9 @@ namespace TFG.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Usuarios_RolId",
-                table: "Usuarios",
-                column: "RolId");
+                name: "IX_LoginsExternos_usuarioId",
+                table: "LoginsExternos",
+                column: "usuarioId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UsuarioItemCompletado_ItemId",
@@ -145,23 +207,20 @@ namespace TFG.Migrations
                 table: "UsuarioMisionCompletada",
                 column: "UsuarioId");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_Usuarios_Roles_RolId",
+            migrationBuilder.CreateIndex(
+                name: "IX_Usuarios_RolId",
                 table: "Usuarios",
-                column: "RolId",
-                principalTable: "Roles",
-                principalColumn: "Id");
+                column: "RolId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Usuarios_Roles_RolId",
-                table: "Usuarios");
+            migrationBuilder.DropTable(
+                name: "Administradores");
 
             migrationBuilder.DropTable(
-                name: "Roles");
+                name: "LoginsExternos");
 
             migrationBuilder.DropTable(
                 name: "UsuarioItemCompletado");
@@ -175,13 +234,11 @@ namespace TFG.Migrations
             migrationBuilder.DropTable(
                 name: "Mision");
 
-            migrationBuilder.DropIndex(
-                name: "IX_Usuarios_RolId",
-                table: "Usuarios");
+            migrationBuilder.DropTable(
+                name: "Usuarios");
 
-            migrationBuilder.DropColumn(
-                name: "RolId",
-                table: "Usuarios");
+            migrationBuilder.DropTable(
+                name: "Roles");
         }
     }
 }

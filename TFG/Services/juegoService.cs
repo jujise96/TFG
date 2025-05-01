@@ -1,4 +1,5 @@
-﻿using TFG.Models;
+﻿using Microsoft.AspNetCore.Identity;
+using TFG.Models;
 using TFG.Repositories;
 
 namespace TFG.Services
@@ -6,9 +7,10 @@ namespace TFG.Services
     public interface IJuegoService
     {
         Task<Juego> ObtenerJuegoPorIdAsync(int id);
-        Task<List<string>> ObtenerQuestsPorJuegoAsync(int juegoId);
-        Task<List<string>> ObtenerItemsPorJuegoAsync(int juegoId);
-        Task<string> ObtenerTrucoPorJuegoAsync(int juegoId);
+        Task<List<ElementoUsuarioViewModel>> ListarJuegos();
+        Task<List<ElementoUsuarioViewModel>> ObtenerQuestsPorJuegoAsync(int juegoId);
+        Task<List<ElementoUsuarioViewModel>> ObtenerItemsPorJuegoAsync(int juegoId);
+        Task<ElementoUsuarioViewModel> ObtenerTrucoPorJuegoAsync(int juegoId);
     }
     
     public class JuegoService : IJuegoService
@@ -22,17 +24,22 @@ namespace TFG.Services
         {
             return await _repositorioJuego.ObtenerJuegoPorId(id);
         }
-        public async Task<List<string>> ObtenerQuestsPorJuegoAsync(int juegoId)
+        public async Task<List<ElementoUsuarioViewModel>> ObtenerQuestsPorJuegoAsync(int juegoId)
         {
             return await _repositorioJuego.ObtenerQuestsPorJuego(juegoId);
         }
-        public async Task<List<string>> ObtenerItemsPorJuegoAsync(int juegoId)
+        public async Task<List<ElementoUsuarioViewModel>> ObtenerItemsPorJuegoAsync(int juegoId)
         {
             return await _repositorioJuego.ObtenerItemsPorJuego(juegoId);
         }
-        public async Task<string> ObtenerTrucoPorJuegoAsync(int juegoId)
+        public async Task<ElementoUsuarioViewModel> ObtenerTrucoPorJuegoAsync(int juegoId)
         {
             return await _repositorioJuego.ObtenerTrucoPorJuego(juegoId);
+        }
+
+        public async Task<List<ElementoUsuarioViewModel>> ListarJuegos()
+        {
+            return await _repositorioJuego.ListarJuegos();
         }
     }
 }

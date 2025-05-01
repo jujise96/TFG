@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.CodeAnalysis;
 
 namespace TFG.Models
 {
@@ -52,10 +53,8 @@ namespace TFG.Models
         [Display(Name = "País")]
         public string Pais { get; set; }
 
-        [Required(ErrorMessage = "La fecha de nacimiento es obligatoria")]
-        [StringLength(10)]
         [Display(Name = "Fecha de Nacimiento")]
-        public string F_Nacimiento { get; set; }
+        public DateTime? F_Nacimiento { get; set; }
 
         [StringLength(100)]
         [Display(Name = "Código Plus de Google: https://maps.google.com/pluscodes/")]
@@ -63,7 +62,51 @@ namespace TFG.Models
     }
 
 
+    public class ModificarUsuarioViewModel
+    {
+        // Este campo puede ser útil para identificar al usuario a modificar
+        public string NombreUsuario { get; set; }
 
+        [Required(ErrorMessage = "El nombre es obligatorio")]
+        [StringLength(50)]
+        [Display(Name = "Nombre")]
+        public string Nombre { get; set; }
 
+        [StringLength(50)]
+        [Display(Name = "Apellido")]
+        public string Apellido { get; set; }
 
+        [Required(ErrorMessage = "El correo electrónico es obligatorio")]
+        [EmailAddress(ErrorMessage = "El correo no tiene un formato válido")]
+        [StringLength(100)]
+        [Display(Name = "Correo Electrónico")]
+        public string Correo { get; set; }
+
+        // En una modificación de usuario, puedes hacer la contraseña opcional si no se desea cambiar
+        [DataType(DataType.Password)]
+        [Display(Name = "Nueva Contraseña")]
+        public string? Contrasena { get; set; }
+
+        [StringLength(20)]
+        [Display(Name = "Teléfono")]
+        public string Telefono { get; set; }
+
+        [StringLength(50)]
+        [Display(Name = "País")]
+        public string Pais { get; set; }
+
+        [Display(Name = "Fecha de Nacimiento")]
+        [DataType(DataType.Date)]
+        public DateTime? F_Nacimiento { get; set; }
+
+        [StringLength(100)]
+        [Display(Name = "Código Plus de Google: https://maps.google.com/pluscodes/")]
+        public string GooglePlusCode { get; set; }
+    }
+
+    public class ElementoUsuarioViewModel()
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; }
+    }
 }
