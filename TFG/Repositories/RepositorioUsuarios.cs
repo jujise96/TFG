@@ -25,8 +25,10 @@ namespace TFG.Repositories
         public async Task CrearUsuario(Usuario usuario)
         {
             using var connection = new SqlConnection(connectionString);
-            var id = await connection.QueryFirstOrDefaultAsync<int>(@"INSERT INTO Usuarios ( NombreUsuario, Nombre, Apellido, Correo, Contrasena, Telefono, Pais, F_Nacimiento, GooglePlusCode ) 
-                                                                    VALUES ( @NombreUsuario, @Nombre, @Apellido, @Correo, @Contrasena, @Telefono, @Pais, @F_Nacimiento, @GooglePlusCode ); select SCOPE_IDENTITY()", usuario);
+            // Verificar si el nombre de usuario ya existe TODO
+            usuario.securityStamp = Guid.NewGuid().ToString();
+            var id = await connection.QueryFirstOrDefaultAsync<int>(@"INSERT INTO Usuarios ( securityStamp, NombreUsuario, Nombre, Apellido, Correo, Contrasena, Telefono, Pais, F_Nacimiento, GooglePlusCode ) 
+                                                                    VALUES (@securityStamp, @NombreUsuario, @Nombre, @Apellido, @Correo, @Contrasena, @Telefono, @Pais, @F_Nacimiento, @GooglePlusCode ); select SCOPE_IDENTITY()", usuario);
             usuario.Id = id;
         }
         public async Task<Usuario> ObtenerUsuarioPorId(int id)
@@ -78,6 +80,5 @@ namespace TFG.Repositories
 
             await connection.ExecuteAsync("DELETE FROM Usuarios WHERE Id = @Id", new { user.Id });
         }
-
     }
 }

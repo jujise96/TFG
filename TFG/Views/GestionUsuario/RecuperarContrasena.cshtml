@@ -1,0 +1,31 @@
+﻿@model RecuperarContraseñaViewModel
+@{
+    ViewData["Title"] = "Cambiar Contraseña";
+}
+
+<h2>Indicar nueva contraseña Contraseña</h2>
+@if (!string.IsNullOrWhiteSpace(ViewBag.Mensaje as string))
+{
+        <p>@ViewBag.Mensaje</p>    
+}
+<form asp-action="RecuperarContrasena" method="post">
+    <div asp-validation-summary="ModelOnly"></div>
+    <div class="form-group">
+
+        <<input asp-for="Codigo" type="hidden" class="form-control" />
+
+        <label asp-for="Correo"></label>
+        <input asp-for="Correo" class="form-control"/>
+        <span asp-validation-for="Correo" class="text-danger"></span>
+
+        <label asp-for="Contrasena"></label>
+        <input asp-for="Contrasena" class="form-control" />
+        <span asp-validation-for="Contrasena" class="text-danger"></span>
+
+        <label asp-for="IntentoCodigo"></label>
+        <input asp-for="IntentoCodigo" class="form-control" />
+        <span asp-validation-for="IntentoCodigo" class="text-danger"></span>
+
+        <button type="submit" class="btn btn-success mt-3">Actualizar Contraseña</button>
+    </div>
+</form>

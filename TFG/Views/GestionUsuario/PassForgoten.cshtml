@@ -1,0 +1,19 @@
+﻿@model PassForgotenViewModel
+@{
+    ViewData["Title"] = "Restablecer Contraseña";
+}
+
+<h2>Restablecer Contraseña</h2>
+@if (!string.IsNullOrWhiteSpace(ViewBag.Mensaje as string))
+{
+    <p>@ViewBag.Mensaje</p>    
+}
+<form asp-action="PassForgoten" method="post">
+    <div asp-validation-summary="ModelOnly"></div>
+    <div class="form-group">
+        <label asp-for="Correo"></label>
+        <input asp-for="Correo" class="form-control"/>
+        <span asp-validation-for="Correo" class="text-danger"></span>
+        <button type="submit" class="btn btn-success mt-3">Enviar correo</button>
+    </div>
+</form>

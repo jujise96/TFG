@@ -2,19 +2,24 @@
 
 @{
     ViewData["Title"] = "Pagina de inicio";
+    var tipo = ViewBag.tipoelemento as string;
 }
 
 <div class="text-center">
     <h1 class="display-4">Guia de supervivencia del yermo</h1>
     @if (Model != null && Model.Any())
     {
-        <ul>
+        <ul class="list-unstyled">
             @foreach (var item in Model)
             {
                 <li>
-                    <a asp-controller="Home" asp-action="@ViewBag.tipoelemento" asp-route-id="@item.Id">
+                    <a asp-controller="Home" asp-action="@tipo" asp-route-id="@item.Id">
                         @item.Nombre
                     </a>
+                    @if ((tipo == "Mision" || tipo == "Item") && User.Identity.IsAuthenticated)
+                    {
+                        <input type="checkbox" name="seleccionado_@item.Id" asp-action="MarcarCompletada" asp-controller="GestionUsuario" method="post" />
+                    }
                 </li>
             }
         </ul>
@@ -24,4 +29,5 @@
         <p>No hay elementos disponibles.</p>
     }
 </div>
+
 

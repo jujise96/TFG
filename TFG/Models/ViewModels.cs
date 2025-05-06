@@ -109,4 +109,25 @@ namespace TFG.Models
         public int Id { get; set; }
         public string Nombre { get; set; }
     }
+
+
+    public class PassForgotenViewModel()
+    {
+        [Required(ErrorMessage = "El Correo es obligatorio")]
+        [EmailAddress(ErrorMessage = "¿Como puedo enviarte un mensaje si no me indicas a donde?")]
+        public string Correo { get; set; }
+    }
+
+    public class RecuperarContraseñaViewModel()
+    {
+        [Required(ErrorMessage = "El Correo es obligatorio")]
+        [EmailAddress(ErrorMessage = "¿Como puedo enviarte un mensaje si no me indicas a donde?")]
+        public string Correo { get; set; }
+        [Required(ErrorMessage = "La contraseña es obligatoria")]
+        [DataType(DataType.Password)]
+        [Display(Name = "Contraseña")]
+        public string Contrasena { get; set; }
+        public string Codigo { get; set; }
+        public string IntentoCodigo { get; set; }
+    }
 }

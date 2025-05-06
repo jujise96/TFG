@@ -1,0 +1,14 @@
+﻿@{
+    ViewData["Title"] = "Atencion";
+}
+
+<h2>Atencion</h2>
+@if (ViewData.Keys.Contains("mensaje"))
+{
+    <p>@ViewData["mensaje"]</p>
+}
+else
+{
+    <p>Nada que notificar por aqui...</p>
+}
+<a class="btn btn-secondary m-3" asp-controller="Home" asp-action="Index">Ok.</a>

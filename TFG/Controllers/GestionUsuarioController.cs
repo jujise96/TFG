@@ -2,8 +2,15 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using TFG.Migrations;
 using TFG.Models;
+using TFG.Services;
 
 namespace TFG.Controllers
 {
@@ -12,12 +19,14 @@ namespace TFG.Controllers
         private readonly UserManager<Usuario> userManager;
         private readonly SignInManager<Usuario> signInManager;
         private readonly ILogger<GestionUsuarioController> logger;
+        private readonly IMailService mailService;
 
-        public GestionUsuarioController(UserManager<Usuario> userManager, SignInManager<Usuario> signInManager, ILogger<GestionUsuarioController> logger)
+        public GestionUsuarioController(UserManager<Usuario> userManager, SignInManager<Usuario> signInManager, ILogger<GestionUsuarioController> logger, IMailService mailService)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
             this.logger = logger;
+            this.mailService = mailService;
         }
 
         private string ObtenerClaim(ClaimsPrincipal principal, string tipoClaim)
@@ -196,9 +205,8 @@ namespace TFG.Controllers
             usuario.GooglePlusCode = VMusuario.GooglePlusCode;
 
             // Si hay una nueva contraseña, la cambiamos
-            // falla al cambiar la contraseña. TODO
-            if (!string.IsNullOrWhiteSpace(VMusuario.Contrasena))
-            {
+            /*if (!string.IsNullOrWhiteSpace(VMusuario.Contrasena))
+            {            
                 var token = await userManager.GeneratePasswordResetTokenAsync(usuario);
                 var resultPassword = await userManager.ResetPasswordAsync(usuario, token, VMusuario.Contrasena);
                 if (!resultPassword.Succeeded)
@@ -209,7 +217,7 @@ namespace TFG.Controllers
                     }
                     return View(VMusuario);
                 }
-            }
+            }*/
 
             var result = await userManager.UpdateAsync(usuario);
 
@@ -358,5 +366,96 @@ namespace TFG.Controllers
             return View("AltaUsuario", registroVM);
 
         }
+
+        public IActionResult PassForgoten(string info = "")
+        {
+            ViewBag.Mensaje = info;
+            if (User.Identity.IsAuthenticated)
+            {
+                var passforgotenviewmodel = new PassForgotenViewModel();
+                passforgotenviewmodel.Correo = User.FindFirst(ClaimTypes.Email)?.Value;
+                return View(passforgotenviewmodel);
+            }
+            return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> PassForgoten(PassForgotenViewModel passforgotenvm)
+        {
+            var mensaje = "De existir una cuenta con el correo electronico: " + passforgotenvm.Correo + " se ha enviado un correo con instrucciones para recuperar su contraseña";
+            ViewBag.Mensaje = mensaje;
+            ModelState.Clear();
+            var usuario = await userManager.FindByEmailAsync(passforgotenvm.Correo);
+            if (usuario is not null)
+            {
+                const string caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+                var bytes = new byte[6];
+                using var rng = RandomNumberGenerator.Create();
+                rng.GetBytes(bytes);
+
+                var resultado = new StringBuilder(6);
+                foreach (var b in bytes)
+                {
+                    resultado.Append(caracteres[b % caracteres.Length]);
+                }
+                var codigo = resultado.ToString();
+                await mailService.SendEmailAsync(usuario.Correo, usuario.NombreUsuario, codigo);
+                return RedirectToAction("RecuperarContrasena", "GestionUsuario", routeValues: new { codigo });
+            }
+            return View();
+        }
+
+        public IActionResult RecuperarContrasena(string codigo = null)
+        {
+            if (codigo is null)
+            {
+                var mensaje = "Ha habido un problema al generar su codigo";
+                return RedirectToAction("Mensaje", "Home", routeValues: new { mensaje });
+            }
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            var modelo = new RecuperarContraseñaViewModel();
+            modelo.Correo = email;
+            modelo.Codigo = codigo;
+            return View(modelo);
+            //tempdata["nombredevariable"] codigo todo
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RecuperarContrasena(RecuperarContraseñaViewModel recuperarContraseñaVM)
+        {
+            var usuario = await userManager.FindByEmailAsync(recuperarContraseñaVM.Correo);
+            var mensaje = "";
+            if (usuario is null)
+            {
+                mensaje = "Ha habido un problema al localizar su usuario";
+                return RedirectToAction("Mensaje", "Home", routeValues: new { mensaje });
+            }
+
+            if(recuperarContraseñaVM.Codigo != recuperarContraseñaVM.IntentoCodigo)
+            {
+                mensaje = "El codigo de verificación no coincide con el indicado";
+                return RedirectToAction("Mensaje", "Home", routeValues: new { mensaje });
+            }
+
+            var token = await userManager.GeneratePasswordResetTokenAsync(usuario);
+            var resultado = await userManager.ResetPasswordAsync(usuario, token, recuperarContraseñaVM.Contrasena);
+            if (!resultado.Succeeded)
+            {
+                foreach (var error in resultado.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+                return View(recuperarContraseñaVM);
+            }
+
+            mensaje = "Ha habido un problema al actualizar su contraseña";
+            if (resultado.Succeeded)
+            {
+                mensaje = "La clave se ha cambiado con exito";
+            }
+            return RedirectToAction("Mensaje", "Home", routeValues: new { mensaje });
+        }
+
+
+
     }
 }

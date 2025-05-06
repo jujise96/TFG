@@ -23,6 +23,12 @@ public class HomeController : Controller
         this.trucoService = trucoService;
     }
 
+    public IActionResult Mensaje(string mensaje = "")
+    {
+        ViewBag.Mensaje = mensaje;
+        return View();
+    }
+
     public async Task<IActionResult> Index()
     {
         // Aquí puedes agregar la lógica para obtener los juegos y pasarlos a la vista
