@@ -12,6 +12,7 @@ namespace TFG.Services
         Task<ElementoUsuarioViewModel> ObtenerTrucoPorJuegoAsync(int juegoId);
         Task<bool> EliminarJuego(int idElemento);
         Task<bool> crearjuego(Juego juego);
+        Task<bool> ModificarJuego(Juego juego);
     }
     
     public class JuegoService : IJuegoService
@@ -51,6 +52,11 @@ namespace TFG.Services
         public async Task<bool> crearjuego(Juego juego)
         {
             return await _repositorioJuego.crearjuego(juego);
+        }
+
+        public async Task<bool> ModificarJuego(Juego juego)
+        {
+            return await _repositorioJuego.ModificarJuego(juego);
         }
     }
 }

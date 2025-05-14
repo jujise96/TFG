@@ -14,6 +14,7 @@ namespace TFG.Repositories
         public Task<ElementoUsuarioViewModel> ObtenerTrucoPorJuego(int id);
         Task<bool> EliminarJuego(int idElemento);
         Task<bool> crearjuego(Juego juego);
+        Task<bool> ModificarJuego(Juego juego);
     }
     public class RepositorioJuego : IRepositorioJuego
     {
@@ -72,6 +73,23 @@ namespace TFG.Repositories
             using var connection = new SqlConnection(connectionString);
             var juegos = await connection.QueryAsync<ElementoUsuarioViewModel>("SELECT ID, Nombre FROM Juego");
             return juegos.ToList();
+        }
+
+        public async Task<bool> ModificarJuego(Juego juego)
+        {
+            using var connection = new SqlConnection(connectionString);
+            try
+            {
+                var affectedRows = await connection.ExecuteAsync(@" UPDATE Juego SET 
+                IdElem = @IdElem, Nombre = @Nombre, Descripcion = @Descripcion, Imagen = @Imagen, Bugs = @Bugs
+            WHERE Id = @Id;", new { juego.IdElem, juego.Nombre, juego.Descripcion, juego.Imagen, juego.Bugs, juego.Id });
+
+                return affectedRows > 0; // Devuelve true si al menos una fila fue modificada
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public async Task<List<ElementoUsuarioViewModel>> ObtenerItemsPorJuego(int id)

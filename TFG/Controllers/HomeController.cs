@@ -194,7 +194,8 @@ public class HomeController : Controller
             Bugs = juegovm.Bugs
         };
 
-        if (await juegoService.crearjuego(juego)) {
+        if (await juegoService.crearjuego(juego))
+        {
             return RedirectToAction("Mensaje", new { mensaje = "Se ha creado el juego" });
         }
 
@@ -202,14 +203,15 @@ public class HomeController : Controller
 
     }
 
-    public async Task<IActionResult> eliminarelemento(int idelemento, int idjuego)
+    public async Task<IActionResult> eliminarelemento(string tipo, int idelemento, int idjuego)
     {
-        var idJuego = int.Parse(HttpContext.Request.Form["idJuego"]);
-        var idElemento = int.Parse(HttpContext.Request.Form["idElemento"]);
-        var tipoElemento = HttpContext.Request.Form["tipoElemento"];
+        var idJuego = int.Parse(HttpContext.Request.Form["idjuego"]);
+        var idElemento = int.Parse(HttpContext.Request.Form["idelemento"]);
+        var tipoElemento = HttpContext.Request.Form["tipo"];
         if (tipoElemento == "Mision")
         {
-            if (await misionService.EliminarMision(idElemento, idjuego)){
+            if (await misionService.EliminarMision(idElemento, idjuego))
+            {
                 return RedirectToAction("Index");
             }
             else
@@ -283,6 +285,63 @@ public class HomeController : Controller
         }
     }
 
+    [HttpPost]
+    public async Task<IActionResult> ModificarElemento(string tipo, int idelemento)
+    {
+        try
+        {
+
+
+            if (tipo == "Juego")
+            {
+                var elemento = await juegoService.ObtenerJuegoPorIdAsync(idelemento);
+                return await Task.FromResult(View("CRUD/ModificarJuego", elemento));
+            }
+            else if (tipo == "Mision")
+            {
+                var elemento = await misionService.ObtenerMisionesPorIdAsync(idelemento);
+                return await Task.FromResult(View("CRUD/ModificarMision", elemento));
+            }
+            else if (tipo == "Item")
+            {
+                var elemento = await itemService.ObtenerItemPorIdAsync(idelemento);
+                return await Task.FromResult(View("CRUD/ModificarItem", elemento));
+            }
+            else if (tipo == "Truco")
+            {
+                var elemento = await trucoService.ObtenerTrucoPorIdAsync(idelemento);
+                return await Task.FromResult(View("CRUD/ModificarTruco", elemento));
+            }
+            else
+            {
+                return RedirectToAction("Mensaje", new { mensaje = "Tipo de elemento no válido" });
+            }
+        }
+        catch
+        {
+            return RedirectToAction("Mensaje", new { mensaje = "Error al intentar modificar el elemento" });
+        }
+    }
+
+
+    [HttpPost]
+    public async Task<IActionResult> ModificarJuego(JuegoViewModel juegovm)
+    {
+        var juego = new Juego()
+        {
+            Id = juegovm.Id,
+            IdElem = juegovm.IdElem,
+            Nombre = juegovm.Nombre,
+            Descripcion = juegovm.Descripcion,
+            Imagen = juegovm.Imagen,
+            Bugs = juegovm.Bugs
+        };
+        if (await juegoService.ModificarJuego(juego))
+        {
+            return RedirectToAction("Mensaje", new { mensaje = "Se ha modificado el juego" });
+        }
+        return RedirectToAction("Mensaje", new { mensaje = "Error al intentar modificar el juego" });
+    }
 
 
 

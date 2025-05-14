@@ -1,4 +1,4 @@
-﻿@model ItemViewModel
+﻿@model Item
 
 @{
     ViewData["Title"] = Model.Nombre;
@@ -7,38 +7,5 @@
 <div class="text-center">
     <h1 class="display-4">Bienvenido a @Model.Nombre</h1>
     <p>Consulta la información de los items del juego y accede a sus contenidos.</p>
-    @if (User.Identity.IsAuthenticated)
-    {
-        <form asp-action="MarcarItemCompletado" asp-controller="GestionUsuario" method="post">
-            @if (@Model.Completada)
-            {
-                <form asp-controller="GestionUsuario" asp-action="MarcarItemCompletado" method="post">
-                    <input type="hidden" name="juegoId" value="@Model.JuegoId" />
-                    <input type="hidden" name="itemId" value="@Model.Id" />
-                    <input type="hidden" name="check" value=true />
-                    <button type="submit" class="btn btn-danger">Desmarcar como completada</button>
-                </form>
-            }
-            else if (!(@Model.Completada))
-            {
-                <form asp-controller="GestionUsuario" asp-action="MarcarItemCompletado" method="post">
-                    <input type="hidden" name="juegoId" value="@Model.JuegoId" />
-                    <input type="hidden" name="itemId" value="@Model.Id" />
-                    <input type="hidden" name="check" value=false />
-                    <button type="submit" class="btn btn-success">Marcar como completada</button>
-                </form>
-            }
-        </form>
-
-    }
-</div>
-
-<div class="container mt-4">
-    <h2>Información de la Misión</h2>
-    <ul class="list-unstyled">
-        <li><strong>Nombre:</strong> @Model.Nombre</li>
-        <li><strong>IdElem:</strong> @Model.IdElem</li>
-        <li><strong>Descripción:</strong> @Model.Descripcion</li>
-        <li><strong>Imagen:</strong> @Model.Imagen</li>
-    </ul>
+    
 </div>
