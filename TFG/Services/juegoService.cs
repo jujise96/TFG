@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using TFG.Models;
+﻿using TFG.Models;
 using TFG.Repositories;
 
 namespace TFG.Services
@@ -11,6 +10,8 @@ namespace TFG.Services
         Task<List<ElementoUsuarioViewModel>> ObtenerQuestsPorJuegoAsync(int juegoId);
         Task<List<ElementoUsuarioViewModel>> ObtenerItemsPorJuegoAsync(int juegoId);
         Task<ElementoUsuarioViewModel> ObtenerTrucoPorJuegoAsync(int juegoId);
+        Task<bool> EliminarJuego(int idElemento);
+        Task<bool> crearjuego(Juego juego);
     }
     
     public class JuegoService : IJuegoService
@@ -40,6 +41,16 @@ namespace TFG.Services
         public async Task<List<ElementoUsuarioViewModel>> ListarJuegos()
         {
             return await _repositorioJuego.ListarJuegos();
+        }
+
+        public async Task<bool> EliminarJuego(int idElemento)
+        {
+            return await _repositorioJuego.EliminarJuego(idElemento);
+        }
+
+        public async Task<bool> crearjuego(Juego juego)
+        {
+            return await _repositorioJuego.crearjuego(juego);
         }
     }
 }

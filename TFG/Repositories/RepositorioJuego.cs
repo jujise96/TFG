@@ -12,6 +12,8 @@ namespace TFG.Repositories
         public Task<List<ElementoUsuarioViewModel>> ObtenerQuestsPorJuego(int id);
         public Task<List<ElementoUsuarioViewModel>> ObtenerItemsPorJuego(int id);
         public Task<ElementoUsuarioViewModel> ObtenerTrucoPorJuego(int id);
+        Task<bool> EliminarJuego(int idElemento);
+        Task<bool> crearjuego(Juego juego);
     }
     public class RepositorioJuego : IRepositorioJuego
     {
@@ -19,6 +21,50 @@ namespace TFG.Repositories
         public RepositorioJuego(IConfiguration configuration)
         {
             connectionString = configuration.GetConnectionString("DefaultConnection");
+        }
+
+        public async Task<bool> crearjuego(Juego juego)
+        {
+            using var connection = new SqlConnection(connectionString);
+            try
+            {
+                await connection.ExecuteAsync(@"
+                        INSERT INTO Juego (IdElem, Nombre, Descripcion, Imagen, Bugs)
+                        VALUES (@IdElem, @Nombre, @Descripcion, @Imagen, @Bugs);", new { juego.IdElem, juego.Nombre, juego.Descripcion, juego.Imagen, juego.Bugs });
+            }
+            catch
+            {
+                // Manejo de excepciones si es necesario
+                return false;
+            }
+            return true;
+        }
+
+        public async Task<bool> EliminarJuego(int idElemento)
+        {
+            using var connection = new SqlConnection(connectionString);
+            try
+            {
+                // Eliminar misiones relacionadas
+                await connection.ExecuteAsync("DELETE FROM Mision WHERE JuegoId = @Id", new { Id = idElemento });
+
+                // Eliminar trucos relacionados
+                await connection.ExecuteAsync("DELETE FROM Truco WHERE JuegoId = @Id", new { Id = idElemento });
+
+                // Eliminar items relacionados
+                await connection.ExecuteAsync("DELETE FROM Items WHERE JuegoId = @Id", new { Id = idElemento });
+
+                // Finalmente, eliminar el juego
+                await connection.ExecuteAsync("DELETE FROM Juego WHERE Id = @Id", new { Id = idElemento });
+            }
+            catch
+            {
+                // Manejo de excepciones si es necesario
+                return false;
+            }
+
+
+            return true;
         }
 
         public async Task<List<ElementoUsuarioViewModel>> ListarJuegos()
@@ -49,6 +95,8 @@ namespace TFG.Repositories
             var quest = await connection.QueryAsync<ElementoUsuarioViewModel>("SELECT Id, Nombre FROM Mision WHERE JuegoId = @id", new { id });
             return quest.ToList();
         }
+
+
 
         public async Task<ElementoUsuarioViewModel> ObtenerTrucoPorJuego(int id)
         {

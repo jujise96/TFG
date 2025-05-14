@@ -20,6 +20,7 @@ namespace TFG.Models
         public string Imagen { get; set; }
 
         public string Bugs { get; set; }
+        public TipoItem TipoItem { get; set; }
 
         public ICollection<UsuarioItemCompletado> UsuariosQueLoCompletaron { get; set; } = new List<UsuarioItemCompletado>();
 

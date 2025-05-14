@@ -49,6 +49,9 @@ namespace TFG.Migrations
                     b.Property<string>("Nombre")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("TipoItem")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("JuegoId");

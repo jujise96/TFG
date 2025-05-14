@@ -7,18 +7,36 @@
 
 <div class="text-center">
     <h1 class="display-4">Guia de supervivencia del yermo</h1>
+    <div>
+        @if ((tipo == "Mision" || tipo == "Item") && User.Identity.IsAuthenticated)
+        {
+            <button class="btn btn-outline-primary btn-sm filter-button active" data-filter="todos">Todos</button>
+            <button class="btn btn-outline-success btn-sm filter-button" data-filter="completados">Completados</button>
+            <button class="btn btn-outline-danger btn-sm filter-button" data-filter="no-completados">No Completados</button>
+        }
+        @if (User.IsInRole("Admin"))
+        {
+            <form method="post" asp-controller="Home" asp-action="CrearElemento" asp-route-tipo="@tipo">
+                <button type="submit" class="btn btn-outline-secondary btn-sm">Crear nuevo @tipo</button>
+            </form>
+        }
+    </div>
     @if (Model != null && Model.Any())
     {
         <ul class="list-unstyled">
             @foreach (var item in Model)
             {
-                <li>
-                    <a asp-controller="Home" asp-action="@tipo" asp-route-id="@item.Id">
+                <li class="elemento-lista" data-completada="@item.completada.ToString().ToLower()">
+                    <a asp-controller="Home" asp-action="@tipo" asp-route-id="@item.Id" asp-route-idJuego="@item.idJuego">
                         @item.Nombre
                     </a>
                     @if ((tipo == "Mision" || tipo == "Item") && User.Identity.IsAuthenticated)
                     {
-                        <input type="checkbox" name="seleccionado_@item.Id" asp-action="MarcarCompletada" asp-controller="GestionUsuario" method="post" />
+                        <input type="checkbox" class="checkbox-completed" id="marcarcompletada_@item.Id" name="seleccionado_@item.Id" @(item.completada ? "checked" : "") />
+                    }
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a class="btn btn-outline-danger btn-sm" asp-controller="Home" asp-action="eliminarelemento" asp-route-tipo="@tipo" asp-route-idelemento="@item.Id" asp-route-idjuego="@item.idJuego">Eliminar @tipo</a>
                     }
                 </li>
             }
@@ -30,4 +48,71 @@
     }
 </div>
 
+@section Scripts {
+    <script>
+        const urlaccion = '@Url.Action("MarcarCompletadaConModelo", "GestionUsuario")';
+        const tipo = '@tipo';
+        let marcarcompletada = document.querySelectorAll('.checkbox-completed');
+        const filterButtons = document.querySelectorAll('.filter-button');
+        const listaElementos = document.querySelectorAll('.elemento-lista');
+        let filtroActivo = 'todos'; // Variable para almacenar el filtro activo
 
+        // Función para aplicar el filtro actual
+        function aplicarFiltro() {
+            listaElementos.forEach(item => {
+                if (filtroActivo === 'todos') {
+                    item.style.display = 'block';
+                } else if (filtroActivo === 'completados') {
+                    const completada = item.getAttribute('data-completada');
+                    item.style.display = completada === 'true' ? 'block' : 'none';
+                } else if (filtroActivo === 'no-completados') {
+                    const completada = item.getAttribute('data-completada');
+                    item.style.display = completada === 'false' ? 'block' : 'none';
+                }
+            });
+        }
+
+        marcarcompletada.forEach(function (checkbox) {
+            checkbox.addEventListener('change', async function () {
+                const id = this.id.split('_')[1];
+                const completada = this.checked;
+                const listItem = this.closest('.elemento-lista');
+                if (listItem) {
+                    listItem.setAttribute('data-completada', completada.toString());
+                }
+
+                const respuesta = await fetch(urlaccion, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id: id,
+                        tipo: tipo,
+                        completada: completada
+                    })
+                });
+                if (respuesta.ok) {
+                    // Volver a aplicar el filtro para actualizar la vista
+                    aplicarFiltro();
+                } else {
+                    alert("Error al marcar el elemento.");
+                }
+            });
+        });
+
+        if (filterButtons.length > 0) {
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    filtroActivo = this.getAttribute('data-filter');
+                    aplicarFiltro();
+                });
+            });
+        }
+
+        // Al cargar la página, aplicar el filtro activo inicial (Todos)
+        aplicarFiltro();
+    </script>
+}

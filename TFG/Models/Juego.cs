@@ -14,6 +14,8 @@ namespace TFG.Models
 
         public string Nombre { get; set; }
         public string Descripcion { get; set; }
+        public string Imagen { get; set; }
+        public string Bugs { get; set; }
 
         public ICollection<Mision> Mision { get; set; } = new List<Mision>();
         public ICollection<Item> Item { get; set; } = new List<Item>();

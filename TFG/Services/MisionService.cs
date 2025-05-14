@@ -1,5 +1,4 @@
-﻿using TFG.Migrations;
-using TFG.Models;
+﻿using TFG.Models;
 using TFG.Repositories;
 
 namespace TFG.Services
@@ -10,6 +9,10 @@ namespace TFG.Services
         // Aquí puedes agregar métodos específicos para la entidad Misión
         // Task<Mision> ObtenerMisionPorIdAsync(int id);
         Task<Mision> ObtenerMisionesPorIdAsync(int id);
+        Task CompletarMision(int idMision, int idUsuario);
+        Task DescompletarMision(int idMision, int idUsuario);
+        Task<IEnumerable<UsuarioMisionCompletada>> ObtenerQuestsPorJuegoyUsuario(int idJuego, int idUsuario);
+        Task<bool> EliminarMision(int idElemento, int idjuego);
     }
     public class MisionService : IMisionService
     {
@@ -20,9 +23,29 @@ namespace TFG.Services
             _repositorioMision = repositorioMision;
         }
 
+        public async Task CompletarMision(int idMision, int idUsuario)
+        {
+            await _repositorioMision.CompletarMision(idMision, idUsuario);
+        }
+
+        public async Task DescompletarMision(int idMision, int idUsuario)
+        {
+            await _repositorioMision.DescompletarMision(idMision, idUsuario);
+        }
+
+        public async Task<bool> EliminarMision(int idElemento, int idjuego)
+        {
+            return await _repositorioMision.EliminarMision(idElemento, idjuego);
+        }
+
         public async Task<Mision> ObtenerMisionesPorIdAsync(int id)
         {
             return await _repositorioMision.ObtenerMisionPorId(id);
+        }
+
+        public async Task<IEnumerable<UsuarioMisionCompletada>> ObtenerQuestsPorJuegoyUsuario(int idJuego, int idUsuario)
+        {
+            return await _repositorioMision.ObtenerQuestsPorJuegoyUsuario(idJuego,idUsuario);
         }
     }
 }

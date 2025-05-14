@@ -23,6 +23,12 @@ namespace TFG.Data
             {
                 identity.AddClaim(new Claim("IdUsuario", user.Id.ToString()));
             }
+
+            var roles = await UserManager.GetRolesAsync(user);
+            foreach (var role in roles)
+            {
+                identity.AddClaim(new Claim(ClaimTypes.Role, role));
+            }
             return identity;
         }
     }

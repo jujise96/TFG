@@ -2,13 +2,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using TFG.Migrations;
 using TFG.Models;
 using TFG.Services;
 
@@ -20,13 +16,17 @@ namespace TFG.Controllers
         private readonly SignInManager<Usuario> signInManager;
         private readonly ILogger<GestionUsuarioController> logger;
         private readonly IMailService mailService;
+        private readonly IMisionService misionService;
+        private readonly IItemService itemService;
 
-        public GestionUsuarioController(UserManager<Usuario> userManager, SignInManager<Usuario> signInManager, ILogger<GestionUsuarioController> logger, IMailService mailService)
+        public GestionUsuarioController(UserManager<Usuario> userManager, SignInManager<Usuario> signInManager, ILogger<GestionUsuarioController> logger, IMailService mailService, IMisionService misionService, IItemService itemService)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
             this.logger = logger;
             this.mailService = mailService;
+            this.misionService = misionService;
+            this.itemService = itemService;
         }
 
         private string ObtenerClaim(ClaimsPrincipal principal, string tipoClaim)
@@ -99,28 +99,35 @@ namespace TFG.Controllers
                 var usuario = new Usuario() { NombreUsuario = VMusuario.NombreUsuario, Nombre = VMusuario.Nombre, Apellido = VMusuario.Apellido, Correo = VMusuario.Correo, Contrasena = VMusuario.Contrasena, Telefono = VMusuario.Telefono, Pais = VMusuario.Pais, F_Nacimiento = VMusuario.F_Nacimiento, GooglePlusCode = VMusuario.GooglePlusCode };
                 var result = await userManager.CreateAsync(usuario, password: usuario.Contrasena);
                 if (result.Succeeded)
-                {
-                    await userManager.AddToRoleAsync(usuario, "USUARIO");
-                    /*if (TempData["LoginProvider"] != null && TempData["ProviderKey"] != null)
+                {                    
+                    if (usuario.Correo == "jujise96@gmail.com")
                     {
-                        var login = new UserLoginInfo(TempData["LoginProvider"].ToString(), TempData["ProviderKey"].ToString(), TempData["ProviderDisplayName"].ToString());
-
-                        TempData.Remove("LoginProvider");
-                        TempData.Remove("ProviderKey");
-                        TempData.Remove("ProviderDisplayName");
-
-                        var resultado = await userManager.AddLoginAsync(usuario, login);
-                        if (resultado.Succeeded)
+                        await userManager.AddToRoleAsync(usuario, "Admin");
+                    }
+                    else
+                    {
+                        await userManager.AddToRoleAsync(usuario, "Usuario");
+                    }
+                        /*if (TempData["LoginProvider"] != null && TempData["ProviderKey"] != null)
                         {
-                            await signInManager.SignInAsync(usuario, isPersistent: false, login.LoginProvider);
-                            return RedirectToAction("Index", "Home");
-                        }
-                        else
-                        {
-                            return View(VMusuario);
-                        }
-                    }*/
-                    await signInManager.SignInAsync(usuario, isPersistent: false);
+                            var login = new UserLoginInfo(TempData["LoginProvider"].ToString(), TempData["ProviderKey"].ToString(), TempData["ProviderDisplayName"].ToString());
+
+                            TempData.Remove("LoginProvider");
+                            TempData.Remove("ProviderKey");
+                            TempData.Remove("ProviderDisplayName");
+
+                            var resultado = await userManager.AddLoginAsync(usuario, login);
+                            if (resultado.Succeeded)
+                            {
+                                await signInManager.SignInAsync(usuario, isPersistent: false, login.LoginProvider);
+                                return RedirectToAction("Index", "Home");
+                            }
+                            else
+                            {
+                                return View(VMusuario);
+                            }
+                        }*/
+                        await signInManager.SignInAsync(usuario, isPersistent: false);
                     return RedirectToAction("Index", "Home");
                 }
                 else
@@ -430,7 +437,7 @@ namespace TFG.Controllers
                 return RedirectToAction("Mensaje", "Home", routeValues: new { mensaje });
             }
 
-            if(recuperarContraseñaVM.Codigo != recuperarContraseñaVM.IntentoCodigo)
+            if (recuperarContraseñaVM.Codigo != recuperarContraseñaVM.IntentoCodigo)
             {
                 mensaje = "El codigo de verificación no coincide con el indicado";
                 return RedirectToAction("Mensaje", "Home", routeValues: new { mensaje });
@@ -455,7 +462,82 @@ namespace TFG.Controllers
             return RedirectToAction("Mensaje", "Home", routeValues: new { mensaje });
         }
 
+        [HttpPost]
+        public async Task<IActionResult> MarcarCompletadaConModelo([FromBody] ItemCheckRequest modelo)
+        {
+            var idusuario = int.Parse(User.FindFirst("IdUsuario").Value);
+            if (modelo.tipo == "Mision")
+            {
+                // Aquí puedes implementar la lógica para marcar la misión como completada
+                // Por ejemplo, actualizar el estado de la misión en la base de datos
+                if (modelo.completada)
+                {
+                    await misionService.CompletarMision(modelo.Id, idusuario);
+                }
+                else
+                {
+                    await misionService.DescompletarMision(modelo.Id, idusuario);
+                }
+
+            }
+            else if (modelo.tipo == "Item")
+            {
+                // Aquí puedes implementar la lógica para marcar el item como completado
+                // Por ejemplo, actualizar el estado del item en la base de datos
+                if (modelo.completada)
+                {
+                    await itemService.CompletarItem(modelo.Id, idusuario);
+                }
+                else
+                {
+                    await itemService.DescompletarItem(modelo.Id, idusuario);
+                }
+            }
+            else
+            {
+                return BadRequest("Tipo no válido");
+            }
+            return Ok();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MarcarCompletada(int juegoId, int misionId, bool check)
+        {
+            var idusuario = int.Parse(User.FindFirst("IdUsuario").Value);
+            if (check)
+            {
+                await misionService.DescompletarMision(misionId, idusuario);
+                check = false;                
+            }
+            else
+            {
+                await misionService.CompletarMision(misionId, idusuario);
+                check = true;                
+            }
+            return RedirectToAction("Mision", "Home", new { id = misionId, idJuego = juegoId });
+            //return RedirectToAction("Misiones", "Home", new { id = juegoId });
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> MarcarItemCompletado(int juegoId, int itemId, bool check)
+        {
+            var idusuario = int.Parse(User.FindFirst("IdUsuario").Value);
+            if (check)
+            {
+                await itemService.DescompletarItem(itemId, idusuario);
+                check = false;
+            }
+            else
+            {
+                await itemService.CompletarItem(itemId, idusuario);
+                check = true;
+            }
+            return RedirectToAction("Item", "Home", new { id = itemId, idJuego = juegoId });
+            //return RedirectToAction("Misiones", "Home", new { id = juegoId });
+        }
 
 
     }
+
 }

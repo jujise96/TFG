@@ -12,8 +12,8 @@ using TFG.Data;
 namespace TFG.Migrations
 {
     [DbContext(typeof(TFGContext))]
-    [Migration("20250501105219_addmodels")]
-    partial class addmodels
+    [Migration("20250513215128_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,7 +33,7 @@ namespace TFG.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.PrimitiveCollection<string>("Bugs")
+                    b.Property<string>("Bugs")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Descripcion")
@@ -46,10 +46,18 @@ namespace TFG.Migrations
                     b.Property<string>("Imagen")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("JuegoId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Nombre")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("TipoItem")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("JuegoId");
 
                     b.ToTable("Items", (string)null);
                 });
@@ -69,16 +77,7 @@ namespace TFG.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.PrimitiveCollection<string>("Item")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Nombre")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.PrimitiveCollection<string>("Quest")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Truco")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -126,7 +125,7 @@ namespace TFG.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.PrimitiveCollection<string>("Bugs")
+                    b.Property<string>("Bugs")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Descripcion")
@@ -139,16 +138,21 @@ namespace TFG.Migrations
                     b.Property<string>("Imagen")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("JuegoId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Nombre")
                         .HasColumnType("nvarchar(max)");
 
-                    b.PrimitiveCollection<string>("StartTrigger")
+                    b.Property<string>("StartTrigger")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("TipoQuest")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("JuegoId");
 
                     b.ToTable("Mision", (string)null);
                 });
@@ -185,13 +189,19 @@ namespace TFG.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("JuegoId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Nombre")
                         .HasColumnType("nvarchar(max)");
 
-                    b.PrimitiveCollection<string>("Trucos")
+                    b.Property<string>("Trucos")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("JuegoId")
+                        .IsUnique();
 
                     b.ToTable("Truco", (string)null);
                 });
@@ -244,6 +254,9 @@ namespace TFG.Migrations
                     b.Property<string>("Telefono")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("securityStamp")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -321,11 +334,38 @@ namespace TFG.Migrations
                     b.ToTable("Administradores", (string)null);
                 });
 
+            modelBuilder.Entity("TFG.Models.Item", b =>
+                {
+                    b.HasOne("TFG.Models.Juego", null)
+                        .WithMany("Item")
+                        .HasForeignKey("JuegoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("TFG.Models.LoginExterno", b =>
                 {
                     b.HasOne("TFG.Models.Usuario", null)
                         .WithMany("LoginsExternos")
                         .HasForeignKey("usuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TFG.Models.Mision", b =>
+                {
+                    b.HasOne("TFG.Models.Juego", null)
+                        .WithMany("Mision")
+                        .HasForeignKey("JuegoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TFG.Models.Truco", b =>
+                {
+                    b.HasOne("TFG.Models.Juego", null)
+                        .WithOne("Truco")
+                        .HasForeignKey("TFG.Models.Truco", "JuegoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -389,6 +429,15 @@ namespace TFG.Migrations
             modelBuilder.Entity("TFG.Models.Item", b =>
                 {
                     b.Navigation("UsuariosQueLoCompletaron");
+                });
+
+            modelBuilder.Entity("TFG.Models.Juego", b =>
+                {
+                    b.Navigation("Item");
+
+                    b.Navigation("Mision");
+
+                    b.Navigation("Truco");
                 });
 
             modelBuilder.Entity("TFG.Models.Mision", b =>

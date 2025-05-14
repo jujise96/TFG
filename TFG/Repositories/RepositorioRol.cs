@@ -56,8 +56,9 @@ namespace TFG.Repositories
 
         public async Task<Roles> ObtenerRolPorNombre(string nombre)
         {
+            var nombreNormalizado = nombre.ToUpper();
             using var connection = new SqlConnection(connectionString);
-            return await connection.QueryFirstOrDefaultAsync<Roles>(@"SELECT * FROM Roles WHERE Nombre = @Nombre", new { Nombre = nombre });
+            return await connection.QueryFirstOrDefaultAsync<Roles>(@"SELECT * FROM Roles WHERE NombreNormalizado = @NombreNormalizado", new { NombreNormalizado = nombreNormalizado });
         }
     }
 }

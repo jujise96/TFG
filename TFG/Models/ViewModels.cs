@@ -106,8 +106,10 @@ namespace TFG.Models
 
     public class ElementoUsuarioViewModel()
     {
+        public int idJuego { get; set; }
         public int Id { get; set; }
         public string Nombre { get; set; }
+        public bool completada { get; set; }
     }
 
 
@@ -130,4 +132,49 @@ namespace TFG.Models
         public string Codigo { get; set; }
         public string IntentoCodigo { get; set; }
     }
+
+
+    public class MisionViewModel()
+    {
+        public int idJuego { get; set; }
+        public int Id { get; set; }
+        public string IdElem { get; set; }
+        public string Nombre { get; set; }
+        public string Descripcion { get; set; }
+        public string Imagen { get; set; }
+        public string StartTrigger { get; set; }
+        public string Bugs { get; set; }
+        public TipoQuest TipoQuest { get; set; }
+        public bool Completada { get; set; }
+    }
+
+    public class ItemViewModel()
+    {
+        public int Id { get; set; }
+        public string IdElem { get; set; }
+        public int JuegoId { get; set; }
+        public string Nombre { get; set; }
+        public string Descripcion { get; set; }
+        public string Imagen { get; set; }
+        public string Bugs { get; set; }
+        public TipoItem TipoItem { get; set; }
+        public bool Completada { get; set; }
+    }
+
+
+    public class JuegoViewModel()
+    {
+        public int Id { get; set; }
+
+        [Required(ErrorMessage = "El Id del Elemento es requerido.")]
+        public string IdElem { get; set; }
+
+        [Required(ErrorMessage = "El Nombre del juego es requerido.")]
+        public string Nombre { get; set; }
+        public string Descripcion { get; set; }
+
+        public string Imagen { get; set; }
+        public string Bugs { get; set; }
+    }
+
 }

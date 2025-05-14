@@ -6,45 +6,24 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TFG.Migrations
 {
     /// <inheritdoc />
-    public partial class nuevadb : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Item",
+                name: "Juego",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     IdElem = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Nombre = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Descripcion = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Imagen = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Bugs = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Descripcion = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Item", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Mision",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    IdElem = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Nombre = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Descripcion = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Imagen = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    StartTrigger = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Bugs = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    TipoQuest = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Mision", x => x.Id);
+                    table.PrimaryKey("PK_Juego", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -58,6 +37,80 @@ namespace TFG.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Roles", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Items",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    IdElem = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    JuegoId = table.Column<int>(type: "int", nullable: false),
+                    Nombre = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Descripcion = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Imagen = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Bugs = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TipoItem = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Items", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Items_Juego_JuegoId",
+                        column: x => x.JuegoId,
+                        principalTable: "Juego",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Mision",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    IdElem = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    JuegoId = table.Column<int>(type: "int", nullable: false),
+                    Nombre = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Descripcion = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Imagen = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    StartTrigger = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Bugs = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TipoQuest = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Mision", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Mision_Juego_JuegoId",
+                        column: x => x.JuegoId,
+                        principalTable: "Juego",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Truco",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    IdElem = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    JuegoId = table.Column<int>(type: "int", nullable: false),
+                    Nombre = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Descripcion = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Trucos = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Truco", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Truco_Juego_JuegoId",
+                        column: x => x.JuegoId,
+                        principalTable: "Juego",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -75,7 +128,8 @@ namespace TFG.Migrations
                     Pais = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     F_Nacimiento = table.Column<DateTime>(type: "datetime2", nullable: true),
                     GooglePlusCode = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    RolId = table.Column<int>(type: "int", nullable: true)
+                    RolId = table.Column<int>(type: "int", nullable: true),
+                    securityStamp = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -142,9 +196,9 @@ namespace TFG.Migrations
                 {
                     table.PrimaryKey("PK_UsuarioItemCompletado", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_UsuarioItemCompletado_Item_ItemId",
+                        name: "FK_UsuarioItemCompletado_Items_ItemId",
                         column: x => x.ItemId,
-                        principalTable: "Item",
+                        principalTable: "Items",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -183,9 +237,25 @@ namespace TFG.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Items_JuegoId",
+                table: "Items",
+                column: "JuegoId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_LoginsExternos_usuarioId",
                 table: "LoginsExternos",
                 column: "usuarioId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Mision_JuegoId",
+                table: "Mision",
+                column: "JuegoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Truco_JuegoId",
+                table: "Truco",
+                column: "JuegoId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_UsuarioItemCompletado_ItemId",
@@ -223,19 +293,25 @@ namespace TFG.Migrations
                 name: "LoginsExternos");
 
             migrationBuilder.DropTable(
+                name: "Truco");
+
+            migrationBuilder.DropTable(
                 name: "UsuarioItemCompletado");
 
             migrationBuilder.DropTable(
                 name: "UsuarioMisionCompletada");
 
             migrationBuilder.DropTable(
-                name: "Item");
+                name: "Items");
 
             migrationBuilder.DropTable(
                 name: "Mision");
 
             migrationBuilder.DropTable(
                 name: "Usuarios");
+
+            migrationBuilder.DropTable(
+                name: "Juego");
 
             migrationBuilder.DropTable(
                 name: "Roles");

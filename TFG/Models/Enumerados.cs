@@ -15,6 +15,15 @@ namespace TFG.Models
         Secundaria,
         [Display(Name = "Sin marcar")]
         SinMarcar
-    }    
+    }
+
+    public enum TipoItem
+    {
+        Arma,
+        Armadura,
+        Ayuda,
+        Otro
+    }
+
 }
 
