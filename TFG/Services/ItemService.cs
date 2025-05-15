@@ -28,7 +28,7 @@ namespace TFG.Services
         public async Task<bool> CrearItem(Item item)
         {
 
-            await _repositorioItem.CrearItem(item);
+            return await _repositorioItem.CrearItem(item);
         }
 
         public async Task DescompletarItem(int itemId, int idUsuario)

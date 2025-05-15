@@ -11,9 +11,9 @@
 <div class="container mt-4">
     <form asp-action="CrearItem" method="post">
         <div class="form-group">
-            <label asp-for="idJuego"></label>
-            <input asp-for="idJuego" class="form-control" value="@Model.idJuego" />
-            <span asp-validation-for="idJuego" class="text-danger"></span>
+            <label asp-for="JuegoId"></label>
+            <input asp-for="JuegoId" class="form-control" value="@Model.JuegoId" />
+            <span asp-validation-for="JuegoId" class="text-danger"></span>
         </div>
 
         <div class="form-group">
@@ -41,25 +41,28 @@
         </div>
 
         <div class="form-group">
-            <label asp-for="StartTrigger"></label>
-            <input asp-for="StartTrigger" class="form-control" />
-            <span asp-validation-for="StartTrigger" class="text-danger"></span>
-        </div>
-
-        <div class="form-group">
             <label asp-for="Bugs"></label>
             <input asp-for="Bugs" class="form-control" />
             <span asp-validation-for="Bugs" class="text-danger"></span>
         </div>
 
         <div class="form-group">
-            <label asp-for="TipoQuest"></label>
-            <select asp-for="TipoQuest" class="form-control" asp-items="Html.GetEnumSelectList<TipoQuest>()">
-                <option value="">Selecciona el tipo de misión</option>
+            <label asp-for="TipoItem"></label>
+            <select asp-for="TipoItem" class="form-control" asp-items="Html.GetEnumSelectList<TipoItem>()">
+                <option value="">Selecciona el tipo de Item</option>
             </select>
-            <span asp-validation-for="TipoQuest" class="text-danger"></span>
+            <span asp-validation-for="TipoItem" class="text-danger"></span>
         </div>
 
         <button type="submit" class="btn btn-primary">Guardar Misión</button>
     </form>
 </div>
+
+@section Scripts {
+    <script>
+        // Necesario para que el valor seleccionado del enum se muestre al editar
+        $(document).ready(function () {
+            $('#TipoItem').val('@Model?.TipoItem');
+        });
+    </script>
+}
