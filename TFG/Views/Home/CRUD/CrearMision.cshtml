@@ -1,45 +1,65 @@
 ﻿@model MisionViewModel
+
 @{
-    ViewData["Title"] = Model.Nombre;
+    ViewData["Title"] = "Crear Misión";
 }
 
 <div class="text-center">
-    <h1 class="display-4">Bienvenido a @Model.Nombre</h1>
-    <p>Consulta la información de las misiones del juego y accede a sus contenidos.</p>
-    @if (User.Identity.IsAuthenticated)
-    {
-        <form asp-action="MarcarCompletada" asp-controller="GestionUsuario">
-            <input type="hidden" name="id" value="@Model.Id" />
-            <input type="hidden" name="tipo" value="Item" />
-            @if (@Model.Completada)
-            {
-                <form asp-controller="GestionUsuario" asp-action="MarcarCompletada" method="post">
-                    <input type="hidden" name="juegoId" value="@Model.idJuego" />
-                    <input type="hidden" name="misionId" value="@Model.Id" />
-                    <input type="hidden" name="check" value=true />
-                    <button type="submit" class="btn btn-danger">Desmarcar como completada</button>
-                </form>
-            }
-            else if (!(@Model.Completada))
-            {
-                <form asp-controller="GestionUsuario" asp-action="MarcarCompletada" method="post">
-                    <input type="hidden" name="juegoId" value="@Model.idJuego" />
-                    <input type="hidden" name="misionId" value="@Model.Id" />
-                    <input type="hidden" name="check" value=false />
-                    <button type="submit" class="btn btn-success">Marcar como completada</button>
-                </form>
-            }
-        </form>
-    }
+    <h1 class="display-4">Vamos a crear una nueva misión</h1>
 </div>
 
 <div class="container mt-4">
-    <h2>Información de la Misión</h2>
-    <ul class="list-unstyled">
-        <li><strong>Nombre:</strong> @Model.Nombre</li>
-        <li><strong>IdElem:</strong> @Model.IdElem</li>
-        <li><strong>Descripción:</strong> @Model.Descripcion</li>
-        <li><strong>Imagen:</strong> @Model.Imagen</li>
-        <li><strong>Tipo de mision:</strong> @Model.TipoQuest</li>
-    </ul>
+    <form asp-action="CrearMision" method="post">
+        <div class="form-group">
+            <label asp-for="idJuego"></label>
+            <input asp-for="idJuego" class="form-control" value="@Model.idJuego" />
+            <span asp-validation-for="idJuego" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="IdElem"></label>
+            <input asp-for="IdElem" class="form-control" />
+            <span asp-validation-for="IdElem" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Nombre"></label>
+            <input asp-for="Nombre" class="form-control" />
+            <span asp-validation-for="Nombre" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Descripcion"></label>
+            <textarea asp-for="Descripcion" class="form-control"></textarea>
+            <span asp-validation-for="Descripcion" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Imagen"></label>
+            <input asp-for="Imagen" class="form-control" />
+            <span asp-validation-for="Imagen" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="StartTrigger"></label>
+            <input asp-for="StartTrigger" class="form-control" />
+            <span asp-validation-for="StartTrigger" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Bugs"></label>
+            <input asp-for="Bugs" class="form-control" />
+            <span asp-validation-for="Bugs" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="TipoQuest"></label>
+            <select asp-for="TipoQuest" class="form-control" asp-items="Html.GetEnumSelectList<TipoQuest>()">
+                <option value="">Selecciona el tipo de misión</option>
+            </select>
+            <span asp-validation-for="TipoQuest" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Guardar Misión</button>
+    </form>
 </div>

@@ -3,6 +3,11 @@
 @{
     ViewData["Title"] = "Pagina de inicio";
     var tipo = ViewBag.tipoelemento as string;
+    var idJuego = ViewBag.idJuego;
+    if (Model != null && Model.Any())
+    {
+        idJuego = Model[0].idJuego;
+    }
 }
 
 <div class="text-center">
@@ -16,7 +21,7 @@
         }
         @if (User.IsInRole("Admin"))
         {
-            <form method="post" asp-controller="Home" asp-action="CrearElemento" asp-route-tipo="@tipo">
+            <form method="post" asp-controller="Home" asp-action="CrearElemento" asp-route-tipo="@tipo" asp-route-idJuego="@idJuego">
                 <button type="submit" class="btn btn-outline-secondary btn-sm">Crear nuevo @tipo</button>
             </form>
         }

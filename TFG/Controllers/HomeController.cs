@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -47,6 +48,7 @@ public class HomeController : Controller
     {
         var elemento = await juegoService.ObtenerJuegoPorIdAsync(id);
         ViewBag.tipoelemento = "Juego";
+        ViewBag.idJuego = id;
         return View(elemento);
     }
 
@@ -76,6 +78,7 @@ public class HomeController : Controller
         }
 
         ViewBag.tipoelemento = "Mision";
+        ViewBag.idJuego = id;
         return View("Index", elementos);
     }
 
@@ -103,6 +106,7 @@ public class HomeController : Controller
             }
         }
         ViewBag.tipoelemento = "Item";
+        ViewBag.idJuego = id;
         return View("Index", elementos);
     }
 
@@ -203,6 +207,49 @@ public class HomeController : Controller
 
     }
 
+    public async Task<IActionResult> CrearMision(MisionViewModel misionvm)
+    {
+        var mision = new Mision()
+        {
+            Id = misionvm.Id,
+            IdElem = misionvm.IdElem,
+            JuegoId = misionvm.idJuego,
+
+            Nombre = misionvm.Nombre,
+            Descripcion = misionvm.Descripcion,
+            Imagen = misionvm.Imagen,
+            StartTrigger = misionvm.StartTrigger,
+            Bugs = misionvm.Bugs,
+            TipoQuest = misionvm.TipoQuest
+        };
+
+        if (await misionService.crearmision(mision))
+        {
+            return RedirectToAction("Mensaje", new { mensaje = "Se ha creado la mision" });
+        }
+
+        return RedirectToAction("Mensaje", new { mensaje = "Error al intentar crear la mision asegurese de que el Id del juego existe" });
+    }
+
+    public async Task<IActionResult> CrearItem(ItemViewModel itemvm)
+    {
+        var item = new Item() {
+            Id = itemvm.Id,
+            IdElem = itemvm.IdElem,
+            JuegoId = itemvm.JuegoId,
+            Nombre = itemvm.Nombre,
+            Descripcion = itemvm.Descripcion,
+            Imagen = itemvm.Imagen,
+            Bugs = itemvm.Bugs,
+            TipoItem = itemvm.TipoItem
+        };
+        if (await itemService.CrearItem(item))
+        {
+            return RedirectToAction("Mensaje", new { mensaje = "Se ha creado el item" });
+        }
+        return RedirectToAction("Mensaje", new { mensaje = "Error al intentar crear el item" });
+    }
+
     public async Task<IActionResult> eliminarelemento(string tipo, int idelemento, int idjuego)
     {
         var idJuego = int.Parse(HttpContext.Request.Form["idjuego"]);
@@ -257,7 +304,7 @@ public class HomeController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> CrearElemento(string tipo)
+    public async Task<IActionResult> CrearElemento(string tipo, string idJuego)
     {
         if (tipo == "Juego")
         {
@@ -267,16 +314,19 @@ public class HomeController : Controller
         else if (tipo == "Mision")
         {
             var elemento = new MisionViewModel();
+            elemento.idJuego = int.Parse(idJuego);
             return await Task.FromResult(View("CRUD/CrearMision", elemento));
         }
         else if (tipo == "Item")
         {
             var elemento = new ItemViewModel();
+            elemento.JuegoId = int.Parse(idJuego);
             return await Task.FromResult(View("CRUD/CrearItem", elemento));
         }
         else if (tipo == "Truco")
         {
             var elemento = new Truco();
+            elemento.JuegoId = int.Parse(idJuego);
             return await Task.FromResult(View("CRUD/CrearTruco", elemento));
         }
         else
@@ -343,7 +393,28 @@ public class HomeController : Controller
         return RedirectToAction("Mensaje", new { mensaje = "Error al intentar modificar el juego" });
     }
 
+    [HttpPost]
+    public async Task<IActionResult> ModificarMision(MisionViewModel misionvm)
+    {
+        var mision = new Mision()
+        {
+            Id = misionvm.Id,
+            JuegoId = misionvm.idJuego,
+            IdElem = misionvm.IdElem,
+            Nombre = misionvm.Nombre,
+            Descripcion = misionvm.Descripcion,
+            Imagen = misionvm.Imagen,
+            StartTrigger = misionvm.StartTrigger,
+            Bugs = misionvm.Bugs,
+            TipoQuest = misionvm.TipoQuest
 
+        };
+        if (await misionService.ModificarMision(mision))
+        {
+            return RedirectToAction("Mensaje", new { mensaje = "Se ha modificado la mision" });
+        }
+        return RedirectToAction("Mensaje", new { mensaje = "Error al intentar modificar la mision" });
+    }
 
 
     public IActionResult Privacy()

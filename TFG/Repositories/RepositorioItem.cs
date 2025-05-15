@@ -11,6 +11,7 @@ namespace TFG.Repositories
         Task DescompletarItem(int itemId, int idUsuario);
         Task<IEnumerable<UsuarioItemCompletado>> ObtenerItemPorJuegoyUsuario(int idJuego, int idUsuario);
         Task<bool> EliminarItem(int idElemento, int Juegoid);
+        Task<bool> CrearItem(Item item);
     }
     public class RepositorioItem : IRepositorioItem
     {
@@ -26,6 +27,26 @@ namespace TFG.Repositories
             var fecha = DateTime.Now;
             await connection.ExecuteAsync(@"INSERT INTO UsuarioItemCompletado(UsuarioId, ItemId, FechaCompletado) 
             values(@UsuarioId, @ItemId, @FechaCompletado)", new { UsuarioId = idUsuario, ItemId = itemId, FechaCompletado = fecha });
+        }
+
+        public async Task<bool> CrearItem(Item item)
+        {
+            using var connection = new SqlConnection(connectionString);
+            try
+            {
+                await connection.ExecuteAsync(@"
+                INSERT INTO Item (IdElem, JuegoId, Nombre, Descripcion, Imagen, Bugs, TipoItem)
+                VALUES (@IdElem, @JuegoId, @Nombre, @Descripcion, @Imagen, @Bugs, @TipoItem)",
+                item); // Pasamos el objeto 'item' directamente para los parámetros
+
+            }
+            catch
+            {
+                // Manejo de excepciones si es necesario
+                return false;
+            }
+
+            return true;
         }
 
         public async Task DescompletarItem(int itemId, int idUsuario)

@@ -11,6 +11,8 @@ namespace TFG.Repositories
         public Task DescompletarMision(int idMision, int idUsuario);
         public Task<IEnumerable<UsuarioMisionCompletada>> ObtenerQuestsPorJuegoyUsuario(int idJuego, int idUsuario);
         Task<bool> EliminarMision(int idElemento, int idjuego);
+        Task<bool> crearmision(Mision mision);
+        Task<bool> ModificarMision(Mision mision);
     }
 
     public class RepositorioMision : IRepositorioMision
@@ -29,6 +31,25 @@ namespace TFG.Repositories
             values(@UsuarioId, @MisionId, @FechaCompletado)", new { UsuarioId = idUsuario, MisionId = idMision, FechaCompletado = fecha });
         }
 
+        public async Task<bool> crearmision(Mision mision)
+        {
+            using var connection = new SqlConnection(connectionString);
+            try
+            {
+                await connection.ExecuteAsync(@"
+                INSERT INTO Mision (IdElem, JuegoId, Nombre, Descripcion, Imagen, StartTrigger, Bugs, TipoQuest)
+                VALUES (@IdElem, @JuegoId, @Nombre, @Descripcion, @Imagen, @StartTrigger, @Bugs, @TipoQuest)",
+                    mision); // Pasamos el objeto 'mision' directamente para los parámetros
+            }            
+            catch
+            {
+                // Manejo de excepciones si es necesario
+                return false;
+            }
+
+            return true;
+        }
+
         public async Task DescompletarMision(int idMision, int idUsuario)
         {
             using var connection = new SqlConnection(connectionString);
@@ -43,6 +64,37 @@ namespace TFG.Repositories
             {
                 await connection.ExecuteAsync(@"DELETE FROM Mision 
                     WHERE Id =@Id AND Juegoid=@Juegoid ", new { Id = idElemento, Juegoid = idjuego });
+            }
+            catch
+            {
+                // Manejo de excepciones si es necesario
+                return false;
+            }
+
+            return true;
+        }
+
+        public async Task<bool> ModificarMision(Mision mision)
+        {
+            using var connection = new SqlConnection(connectionString);
+            try
+            {
+                int rowsAffected = await connection.ExecuteAsync(@"
+                UPDATE Mision
+                SET IdElem = @IdElem,
+                    Nombre = @Nombre,
+                    Descripcion = @Descripcion,
+                    Imagen = @Imagen,
+                    StartTrigger = @StartTrigger,
+                    Bugs = @Bugs,
+                    TipoQuest = @TipoQuest
+                WHERE Id = @Id",
+                    mision); // Pasamos el objeto 'mision' directamente para los parámetros
+            }
+            catch (SqlException ex)
+            {
+                // Manejo de excepciones si es necesario
+                Console.WriteLine(ex.Message);
             }
             catch
             {

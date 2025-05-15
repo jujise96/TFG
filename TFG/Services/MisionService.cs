@@ -13,6 +13,8 @@ namespace TFG.Services
         Task DescompletarMision(int idMision, int idUsuario);
         Task<IEnumerable<UsuarioMisionCompletada>> ObtenerQuestsPorJuegoyUsuario(int idJuego, int idUsuario);
         Task<bool> EliminarMision(int idElemento, int idjuego);
+        Task<bool> crearmision(Mision mision);
+        Task<bool> ModificarMision(Mision mision);
     }
     public class MisionService : IMisionService
     {
@@ -28,6 +30,11 @@ namespace TFG.Services
             await _repositorioMision.CompletarMision(idMision, idUsuario);
         }
 
+        public async Task<bool> crearmision(Mision mision)
+        {
+            return await _repositorioMision.crearmision(mision);
+        }
+
         public async Task DescompletarMision(int idMision, int idUsuario)
         {
             await _repositorioMision.DescompletarMision(idMision, idUsuario);
@@ -36,6 +43,11 @@ namespace TFG.Services
         public async Task<bool> EliminarMision(int idElemento, int idjuego)
         {
             return await _repositorioMision.EliminarMision(idElemento, idjuego);
+        }
+
+        public async Task<bool> ModificarMision(Mision mision)
+        {
+            return await _repositorioMision.ModificarMision(mision);
         }
 
         public async Task<Mision> ObtenerMisionesPorIdAsync(int id)
