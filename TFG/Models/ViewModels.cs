@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
+using System.Collections.Generic;
 
 namespace TFG.Models
 {
@@ -177,4 +178,24 @@ namespace TFG.Models
         public string Bugs { get; set; }
     }
 
+    public class CajaDeComentariosViewModel
+    {
+        public string TipoEntidad { get; set; }
+        public int EntidadId { get; set; }
+        public List<ComentarioViewModel> Comentarios { get; set; }
+        public int TotalComentarios { get; set; }
+        public int PaginaActual { get; set; }
+        public int TotalPaginas { get; set; }
+    }
+
+    public class ComentarioViewModel
+    {
+        public int Id { get; set; }
+        public string Mensaje { get; set; }
+        public DateTime FechaCreacion { get; set; }
+        public int UserId { get; set; }
+        public int? ComentarioPadreId { get; set; }
+        public List<ComentarioViewModel> Respuestas { get; set; } // Para la visualización anidada
+    }
 }
+

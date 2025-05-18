@@ -28,6 +28,9 @@ namespace TFG.Data
             modelBuilder.Entity<Item>().ToTable("Items");
             modelBuilder.Entity<Mision>().ToTable("Mision");
             modelBuilder.Entity<Truco>().ToTable("Truco");
+            modelBuilder.Entity<Comentario>().ToTable("Comentario"); // O el nombre que quieras para la tabla
+
+
 
         }
     }

@@ -1,0 +1,21 @@
+﻿@model TFG.Models.CajaDeComentariosViewModel
+
+<div id="contenedor-de-comentarios">
+    <h3>Comentarios (@Model.TotalComentarios)</h3>
+    @if (Model.Comentarios.Any())
+    {
+        <ul class="list-unstyled">
+            @foreach (var comentario in Model.Comentarios)
+            {
+                @await Html.PartialAsync("_ComentarioIndividual", comentario)
+            }
+        </ul>
+        @* Aquí podrías añadir lógica para la paginación si la implementas *@
+    }
+    else
+    {
+        <p>No hay comentarios aún. ¡Sé el primero en comentar!</p>
+    }
+
+    @* Formulario para crear un nuevo comentario (podría estar aquí o en la vista principal) *@
+</div>

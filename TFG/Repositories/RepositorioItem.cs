@@ -12,6 +12,7 @@ namespace TFG.Repositories
         Task<IEnumerable<UsuarioItemCompletado>> ObtenerItemPorJuegoyUsuario(int idJuego, int idUsuario);
         Task<bool> EliminarItem(int idElemento, int Juegoid);
         Task<bool> CrearItem(Item item);
+        Task<bool> ModificarItem(Item item);
     }
     public class RepositorioItem : IRepositorioItem
     {
@@ -35,13 +36,14 @@ namespace TFG.Repositories
             try
             {
                 await connection.ExecuteAsync(@"
-                INSERT INTO Item (IdElem, JuegoId, Nombre, Descripcion, Imagen, Bugs, TipoItem)
+                INSERT INTO Items (IdElem, JuegoId, Nombre, Descripcion, Imagen, Bugs, TipoItem)
                 VALUES (@IdElem, @JuegoId, @Nombre, @Descripcion, @Imagen, @Bugs, @TipoItem)",
                 item); // Pasamos el objeto 'item' directamente para los parámetros
 
             }
-            catch
+            catch (SqlException ex)
             {
+                Console.WriteLine($"Error de SQL al crear la misión: {ex.Message}");
                 // Manejo de excepciones si es necesario
                 return false;
             }
@@ -71,6 +73,32 @@ namespace TFG.Repositories
             }
             
             return true;
+        }
+
+        public async Task<bool> ModificarItem(Item item)
+        {
+            using var connection = new SqlConnection(connectionString);
+            try
+            {
+                int rowsAffected = await connection.ExecuteAsync(@"
+                UPDATE Items
+                SET IdElem = @IdElem,
+                    JuegoId = @JuegoId,
+                    Nombre = @Nombre,
+                    Descripcion = @Descripcion,
+                    Imagen = @Imagen,
+                    Bugs = @Bugs,
+                    TipoItem = @TipoItem
+                WHERE Id = @Id",
+                    item); // Pasamos el objeto 'item' directamente para los parámetros
+
+                return rowsAffected > 0; // Devuelve true si al menos una fila fue modificada
+            }
+            catch
+            {
+                // Manejo de otras excepciones si es necesario
+                return false;
+            }
         }
 
         // Aquí puedes agregar métodos específicos para la entidad Item

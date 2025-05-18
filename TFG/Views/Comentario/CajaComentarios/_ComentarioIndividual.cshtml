@@ -1,0 +1,19 @@
+﻿@model TFG.Models.ComentarioViewModel
+
+<li class="media mb-3">
+    @* Aquí podrías mostrar la información del usuario (si la tienes) *@
+    <div class="media-body">
+        <h5 class="mt-0 mb-1">Usuario @Model.UserId - @Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</h5>
+        <p>@Model.Mensaje</p>
+        @if (Model.Respuestas.Any())
+        {
+            <ul class="list-unstyled ml-5">
+                @foreach (var respuesta in Model.Respuestas)
+                {
+                    @await Html.PartialAsync("_ComentarioIndividual", respuesta)
+                }
+            </ul>
+        }
+        @* Formulario para responder a este comentario (podría estar aquí o manejarse dinámicamente con JS) *@
+    </div>
+</li>

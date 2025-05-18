@@ -27,6 +27,8 @@ builder.Services.AddTransient<IItemService, ItemService>();
 builder.Services.AddTransient<IRepositorioTruco, RepositorioTruco>();
 builder.Services.AddTransient<ITrucoService, TrucoService>();
 builder.Services.AddTransient<IMailService, MailService>();
+builder.Services.AddTransient<IRepositorioComentario, RepositorioComentario>();
+builder.Services.AddTransient<IComentarioService, ComentarioService>();
 
 builder.Services.AddHttpContextAccessor();
 

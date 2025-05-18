@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TFG.Data;
 
@@ -11,9 +12,11 @@ using TFG.Data;
 namespace TFG.Migrations
 {
     [DbContext(typeof(TFGContext))]
-    partial class TFGContextModelSnapshot : ModelSnapshot
+    [Migration("20250518210348_cajacomentario")]
+    partial class cajacomentario
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,46 +24,6 @@ namespace TFG.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("TFG.Models.Comentario", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("ComentarioPadreId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("EntidadId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("FechaCreacion")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("JuegoId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Mensaje")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<int>("TipoEntidad")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ComentarioPadreId");
-
-                    b.HasIndex("JuegoId");
-
-                    b.ToTable("Comentario", (string)null);
-                });
 
             modelBuilder.Entity("TFG.Models.Item", b =>
                 {
@@ -375,23 +338,6 @@ namespace TFG.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.ToTable("Administradores", (string)null);
-                });
-
-            modelBuilder.Entity("TFG.Models.Comentario", b =>
-                {
-                    b.HasOne("TFG.Models.Comentario", "ComentarioPadre")
-                        .WithMany()
-                        .HasForeignKey("ComentarioPadreId");
-
-                    b.HasOne("TFG.Models.Juego", "Juego")
-                        .WithMany()
-                        .HasForeignKey("JuegoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ComentarioPadre");
-
-                    b.Navigation("Juego");
                 });
 
             modelBuilder.Entity("TFG.Models.Item", b =>

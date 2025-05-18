@@ -39,3 +39,36 @@
         </li>
     </ul>
 </div>
+
+<div id="seccion-de-comentarios">
+    <p>Cargando comentarios...</p>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var tipoEntidad = "Juego";
+            var entidadId = @Model.Id;
+            var comentariosDiv = document.getElementById('seccion-de-comentarios');
+
+            fetch(`/Comentario/MostrarComentarios?tipoEntidad=${tipoEntidad}&entidadId=${entidadId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        console.error('Error en la respuesta del servidor:', response.status, response.statusText);
+                        comentariosDiv.innerHTML = '<p>Error al cargar los comentarios desde el servidor.</p>';
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    comentariosDiv.innerHTML = data;
+                })
+                .catch(error => {
+                    console.error('Error de red al cargar los comentarios:', error);
+                    comentariosDiv.innerHTML = '<p>Error de red al intentar cargar los comentarios.</p>';
+                });
+        });
+
+        // Aquí podrías añadir JavaScript para manejar el envío de nuevos comentarios/respuestas por AJAX con fetch también
+    </script>
+}

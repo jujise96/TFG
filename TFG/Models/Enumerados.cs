@@ -25,5 +25,12 @@ namespace TFG.Models
         Otro
     }
 
+    public enum TipoEntidad
+    {
+        Juego,
+        Mision,
+        Item
+    }
+
 }
 

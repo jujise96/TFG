@@ -7,14 +7,45 @@
 <div class="text-center">
     <h1 class="display-4">Bienvenido a @Model.Nombre</h1>
     <p>Consulta la información de los trucos del juego.</p>
+    @if (User.Identity.IsAuthenticated)
+    {
+        @if (User.IsInRole("Admin"))
+        {
+            if(Model.Id==-1){
+                <form method="post" asp-controller="Home" asp-action="CrearElemento" asp-route-tipo="Truco" asp-route-idJuego="@Model.JuegoId">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">Crear Truco</button>
+                </form>
+            }else{
+            <form method="post" asp-controller="Home" asp-action="ModificarElemento" asp-route-tipo="Truco" asp-route-idelemento=@Model.JuegoId>
+                <button type="submit" class="btn btn-outline-secondary btn-sm">Modificar Item: @Model.Nombre</button>
+            </form>
+            }
+
+        }
+    }
 </div>
 
 <div class="container mt-4">
-    <h2>Información de la Misión</h2>
+    <h2>Información de los Trucos</h2>
     <ul class="list-unstyled">
         <li><strong>Nombre:</strong> @Model.Nombre</li>
         <li><strong>IdElem:</strong> @Model.IdElem</li>
         <li><strong>Descripción:</strong> @Model.Descripcion</li>
-        <li><strong>Trucos:</strong> @Model.Trucos</li>
+        <li>
+            <strong>Trucos:</strong> <em>Para poder ingresar los siguientes trucos deberá pulsar la "tecla de grado ordinal" (la que se usa para el carácter "º")</em>
+            @if (!string.IsNullOrEmpty(Model.Trucos))
+            {
+                <ul class="list-unstyled">
+                    @foreach (var truco in Model.Trucos.Split(';'))
+                    {
+                        <li>@truco</li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <span>No hay trucos disponibles.</span>
+            }
+        </li>
     </ul>
 </div>

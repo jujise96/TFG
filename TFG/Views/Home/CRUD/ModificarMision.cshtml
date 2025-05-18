@@ -62,7 +62,7 @@
         <div class="form-group">
             <label asp-for="TipoQuest"></label>
             <select asp-for="TipoQuest" class="form-control" asp-items="Html.GetEnumSelectList<TipoQuest>()">
-                <option value="">Selecciona el tipo de misión</option>
+                <option value="@Model.TipoQuest">@Model.TipoQuest</option>
             </select>
             <span asp-validation-for="TipoQuest" class="text-danger"></span>
         </div>

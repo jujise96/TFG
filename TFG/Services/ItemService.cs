@@ -11,6 +11,7 @@ namespace TFG.Services
         Task<IEnumerable<UsuarioItemCompletado>> ObtenerItemPorJuegoyUsuario(int idJuego, int idUsuario);
         Task<bool> EliminarItem(int idElemento, int Juegoid);
         Task<bool> CrearItem(Item item);
+        Task<bool> ModificarItem(Item item);
     }
     public class ItemService : IItemService
     {
@@ -18,6 +19,11 @@ namespace TFG.Services
         public ItemService(IRepositorioItem repositorioItem)
         {
             _repositorioItem = repositorioItem;
+        }
+
+        public async Task<bool> ModificarItem(Item item)
+        {
+            return await _repositorioItem.ModificarItem(item);
         }
 
         public async Task CompletarItem(int itemId, int idUsuario)

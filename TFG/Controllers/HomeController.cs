@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TFG.Models;
@@ -18,6 +19,7 @@ public class HomeController : Controller
     private readonly ITrucoService trucoService;
     private readonly UserManager<Usuario> userManager;
     private readonly SignInManager<Usuario> signinmanager;
+
 
     public HomeController(ILogger<HomeController> logger, IJuegoService juegoService, IMisionService misionService, IItemService itemService, ITrucoService trucoService, SignInManager<Usuario> signinmanager, UserManager<Usuario> userManager)
     {
@@ -181,7 +183,15 @@ public class HomeController : Controller
         ViewBag.tipoelemento = "Trucos";
         if (elemento is null)
         {
-            return RedirectToAction("Mensaje", new { mensaje = "No se ha encontrado ningun truco" });
+            elemento = new Truco()
+            {
+                Id = -1,
+                IdElem = "",
+                JuegoId = id,
+                Nombre = "",
+                Descripcion = "",
+                Trucos = ""
+            };
         }
         return View("Trucos", elemento);
     }
@@ -248,6 +258,15 @@ public class HomeController : Controller
             return RedirectToAction("Mensaje", new { mensaje = "Se ha creado el item" });
         }
         return RedirectToAction("Mensaje", new { mensaje = "Error al intentar crear el item" });
+    }
+
+    public async Task<IActionResult> CrearTruco(Truco truco)
+    {
+        if (await trucoService.Creartruco(truco))
+        {
+            return RedirectToAction("Mensaje", new { mensaje = "Se ha creado el truco" });
+        }
+        return RedirectToAction("Mensaje", new { mensaje = "Error al intentar crear el truco" });
     }
 
     public async Task<IActionResult> eliminarelemento(string tipo, int idelemento, int idjuego)
@@ -416,6 +435,36 @@ public class HomeController : Controller
         return RedirectToAction("Mensaje", new { mensaje = "Error al intentar modificar la mision" });
     }
 
+    [HttpPost]
+    public async Task<IActionResult> ModificarItem(ItemViewModel itemvm)
+    {
+        var item = new Item()
+        {
+            Id = itemvm.Id,
+            JuegoId = itemvm.JuegoId,
+            IdElem = itemvm.IdElem,
+            Nombre = itemvm.Nombre,
+            Descripcion = itemvm.Descripcion,
+            Imagen = itemvm.Imagen,
+            Bugs = itemvm.Bugs,
+            TipoItem = itemvm.TipoItem
+        };
+        if (await itemService.ModificarItem(item))
+        {
+            return RedirectToAction("Mensaje", new { mensaje = "Se ha modificado el item" });
+        }
+        return RedirectToAction("Mensaje", new { mensaje = "Error al intentar modificar el item" });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ModificarTruco(Truco truco)
+    {
+        if (await trucoService.ModificarTruco(truco))
+        {
+            return RedirectToAction("Mensaje", new { mensaje = "Se ha modificado el truco" });
+        }
+        return RedirectToAction("Mensaje", new { mensaje = "Error al intentar modificar el truco" });
+    }
 
     public IActionResult Privacy()
     {

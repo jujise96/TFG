@@ -10,6 +10,8 @@ namespace TFG.Services
 
         // Aquí puedes agregar métodos específicos para la entidad Truco
         Task<Truco> ObtenerTrucoPorIdAsync(int id);
+        Task<bool> ModificarTruco(Truco truco);
+        Task<bool> Creartruco(Truco truco);
     }
     public class TrucoService : ITrucoService
     {
@@ -19,9 +21,19 @@ namespace TFG.Services
             _repositorioTruco = repositorioTruco;
         }
 
+        public async Task<bool> Creartruco(Truco truco)
+        {
+            return await _repositorioTruco.Creartruco(truco);
+        }
+
         public async Task<bool> EliminarTruco(int idElemento, int idjuego)
         {
             return await _repositorioTruco.EliminarTruco(idElemento, idjuego);
+        }
+
+        public async Task<bool> ModificarTruco(Truco truco)
+        {
+            return await _repositorioTruco.ModificarTruco(truco);
         }
 
         // Aquí puedes agregar métodos específicos para la entidad Truco
