@@ -62,13 +62,67 @@
                 })
                 .then(data => {
                     comentariosDiv.innerHTML = data;
+                    // Ejecutar el script para adjuntar el event listener
+                    var enviarBtn = comentariosDiv.querySelector('#formNuevoComentario button[type="button"]');
+                    if (enviarBtn) {
+                        enviarBtn.addEventListener('click', enviarComentario);
+                    } else {
+                        console.error('No se encontró el botón de enviar comentario después de la carga.');
+                    }
+
+                    function enviarComentario() {
+                        var mensaje = document.getElementById('mensajeNuevoComentario').value;
+                        var tipoEntidad = document.getElementById('tipoEntidad').value;
+                        var entidadId = document.getElementById('entidadId').value;
+                        var mensajeRespuesta = document.getElementById('mensajeRespuestaComentario');
+                        var juegoId = document.getElementById('entidadId').value; // Obtén el Id del juego
+
+
+                        if (mensaje.trim() === "") {
+                            mensajeRespuesta.innerHTML = '<div class="alert alert-warning">Por favor, escribe un comentario.</div>';
+                            return;
+                        }
+
+                        fetch('/Comentario/CrearComentario', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'RequestVerificationToken': '@Html.AntiForgeryToken()' // Importante para seguridad
+                            },
+                                body: `tipoEntidad=${tipoEntidad}&entidadId=${entidadId}&mensaje=${encodeURIComponent(mensaje)}&comentarioPadreId=&juegoId=${juegoId}` // Añade juegoId
+        })
+                        .then(response => {
+                            if (response.ok) {
+                                return response.text(); // Esperamos el HTML del nuevo comentario
+                            } else {
+                                console.error('Error al enviar el comentario:', response.status, response.statusText);
+                                mensajeRespuesta.innerHTML = '<div class="alert alert-danger">Error al enviar el comentario. Inténtalo de nuevo.</div>';
+                                throw new Error('Error al enviar el comentario.');
+                            }
+                        })
+                        .then(data => {
+                            // Insertar el nuevo comentario al principio de la lista
+                            var comentariosContainer = document.querySelector('.card-body');
+                            var nuevoComentarioDiv = document.createElement('div');
+                            nuevoComentarioDiv.innerHTML = data;
+                            comentariosContainer.insertBefore(nuevoComentarioDiv.firstChild, comentariosContainer.firstChild);
+
+                            // Limpiar el textarea y mostrar un mensaje de éxito
+                            document.getElementById('mensajeNuevoComentario').value = "";
+                            mensajeRespuesta.innerHTML = '<div class="alert alert-success">Comentario enviado.</div>';
+                            setTimeout(() => {
+                                mensajeRespuesta.innerHTML = "";
+                            }, 3000); // Limpiar el mensaje después de 3 segundos
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                    }
                 })
                 .catch(error => {
                     console.error('Error de red al cargar los comentarios:', error);
                     comentariosDiv.innerHTML = '<p>Error de red al intentar cargar los comentarios.</p>';
                 });
         });
-
-        // Aquí podrías añadir JavaScript para manejar el envío de nuevos comentarios/respuestas por AJAX con fetch también
     </script>
 }

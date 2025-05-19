@@ -191,11 +191,16 @@ namespace TFG.Models
     public class ComentarioViewModel
     {
         public int Id { get; set; }
+        public int JuegoId { get; set; }
+        public TipoEntidad TipoEntidad { get; set; }
+        public int? ComentarioPadreId { get; set; }
+        public int EntidadId { get; set; }
         public string Mensaje { get; set; }
         public DateTime FechaCreacion { get; set; }
         public int UserId { get; set; }
-        public int? ComentarioPadreId { get; set; }
+        public string NombreUsuario { get; set; } // Nueva propiedad
         public List<ComentarioViewModel> Respuestas { get; set; } // Para la visualización anidada
+
     }
 }
 

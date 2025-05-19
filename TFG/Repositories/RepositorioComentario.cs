@@ -7,8 +7,8 @@ namespace TFG.Repositories
     public interface IRepositorioComentario
     {
         Task<Comentario> ObtenerComentarioPorIdAsync(int id);
-        Task<IEnumerable<Comentario>> ObtenerComentariosPorEntidad(TipoEntidad tipoEntidad, int entidadId);
-        Task<bool> GuardarComentario(Comentario comentario);
+        Task<IEnumerable<ComentarioViewModel>> ObtenerComentariosPorEntidad(TipoEntidad tipoEntidad, int entidadId);
+        Task<bool> GuardarComentario(ComentarioViewModel comentario);
         //public Task<bool> ModificarComentario(Comentario comentario)
         //public Task<bool> EliminarComentario(int id)
     }
@@ -28,17 +28,24 @@ namespace TFG.Repositories
             return await connection.QueryFirstOrDefaultAsync<Comentario>("SELECT * FROM Comentario WHERE Id = @Id", new { Id = id });
         }
 
-        public async Task<IEnumerable<Comentario>> ObtenerComentariosPorEntidad(TipoEntidad tipoEntidad, int entidadId)
+        public async Task<IEnumerable<ComentarioViewModel>> ObtenerComentariosPorEntidad(TipoEntidad tipoEntidad, int entidadId)
         {
             using var connection = new SqlConnection(connectionString);
-            return await connection.QueryAsync<Comentario>(@"
-                SELECT * FROM Comentario
-                WHERE TipoEntidad = @TipoEntidad AND EntidadId = @EntidadId
-                ORDER BY FechaCreacion ASC", // O la ordenación que prefieras
-                new { TipoEntidad = tipoEntidad, EntidadId = entidadId });
+            return await connection.QueryAsync<ComentarioViewModel>(@"
+                    SELECT c.Id AS Id,
+                           c.Mensaje AS Mensaje,
+                           c.FechaCreacion AS FechaCreacion,
+                           c.UserId AS UserId,
+                           u.NombreUsuario AS NombreUsuario,
+                           c.ComentarioPadreId AS ComentarioPadreId
+                    FROM Comentario c
+                    LEFT JOIN Usuarios u ON c.UserId = u.Id
+                    WHERE c.TipoEntidad = @TipoEntidad AND c.EntidadId = @EntidadId
+                    ORDER BY c.FechaCreacion ASC",
+        new { TipoEntidad = tipoEntidad, EntidadId = entidadId });
         }
 
-        public async Task<bool> GuardarComentario(Comentario comentario)
+        public async Task<bool> GuardarComentario(ComentarioViewModel comentario)
         {
             using var connection = new SqlConnection(connectionString);
             try
@@ -57,7 +64,7 @@ namespace TFG.Repositories
         }
 
 
-        
+
         // public async Task<bool> ModificarComentario(Comentario comentario)
         // {
         //     using var connection = new SqlConnection(connectionString);
@@ -69,7 +76,7 @@ namespace TFG.Repositories
         //     return rowsAffected > 0;
         // }
 
-        
+
         // public async Task<bool> EliminarComentario(int id)
         // {
         //     using var connection = new SqlConnection(connectionString);

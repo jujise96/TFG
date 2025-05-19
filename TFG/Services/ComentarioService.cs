@@ -7,8 +7,8 @@ namespace TFG.Services
 {
     public interface IComentarioService
     {
-        Task<IEnumerable<Comentario>> ObtenerComentariosPorEntidad(TipoEntidad tipoEntidad, int entidadId);
-        Task<bool> GuardarComentario(Comentario nuevoComentario);
+        Task<IEnumerable<ComentarioViewModel>> ObtenerComentariosPorEntidad(TipoEntidad tipoEntidad, int entidadId);
+        Task<bool> GuardarComentario(ComentarioViewModel nuevoComentario);
         // Otros métodos relacionados con comentarios...
     }
 
@@ -21,12 +21,12 @@ namespace TFG.Services
             _comentarioRepository = comentarioRepository;
         }
 
-        public async Task<IEnumerable<Comentario>> ObtenerComentariosPorEntidad(TipoEntidad tipoEntidad, int entidadId)
+        public async Task<IEnumerable<ComentarioViewModel>> ObtenerComentariosPorEntidad(TipoEntidad tipoEntidad, int entidadId)
         {
             return await _comentarioRepository.ObtenerComentariosPorEntidad(tipoEntidad, entidadId);
         }
 
-        public async Task<bool> GuardarComentario(Comentario nuevoComentario)
+        public async Task<bool> GuardarComentario(ComentarioViewModel nuevoComentario)
         {
             // Aquí podrías agregar lógica de negocio adicional antes de guardar, si es necesario
             return await _comentarioRepository.GuardarComentario(nuevoComentario);

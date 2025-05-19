@@ -61,7 +61,7 @@ public class ComentarioController : Controller
         return PartialView("CajaComentarios/_CajaDeComentarios", comentariosViewModel);
     }
 
-    private CajaDeComentariosViewModel ConstruirCajaDeComentariosViewModel(TipoEntidad tipoEntidad, int entidadId, IEnumerable<Comentario> comentarios)
+    private CajaDeComentariosViewModel ConstruirCajaDeComentariosViewModel(TipoEntidad tipoEntidad, int entidadId, IEnumerable<ComentarioViewModel> comentarios)
     {
         var viewModel = new CajaDeComentariosViewModel
         {
@@ -83,7 +83,7 @@ public class ComentarioController : Controller
         return viewModel;
     }
 
-    private ComentarioViewModel ConvertirAViewModelConRespuestas(Comentario comentario, IEnumerable<Comentario> todosLosComentarios)
+    private ComentarioViewModel ConvertirAViewModelConRespuestas(ComentarioViewModel comentario, IEnumerable<ComentarioViewModel> todosLosComentarios)
     {
         var comentarioViewModel = new ComentarioViewModel
         {
@@ -91,9 +91,11 @@ public class ComentarioController : Controller
             Mensaje = comentario.Mensaje,
             FechaCreacion = comentario.FechaCreacion,
             UserId = comentario.UserId,
+            NombreUsuario = comentario.NombreUsuario,
             ComentarioPadreId = comentario.ComentarioPadreId,
             Respuestas = new List<ComentarioViewModel>()
         };
+
 
         var respuestas = todosLosComentarios.Where(c => c.ComentarioPadreId == comentario.Id).ToList();
         foreach (var respuesta in respuestas)
@@ -106,7 +108,7 @@ public class ComentarioController : Controller
 
     [HttpPost]
     [Authorize]
-    public async Task<IActionResult> CrearComentario(string tipoEntidad, int entidadId, string mensaje, int? comentarioPadreId)
+    public async Task<IActionResult> CrearComentario(string tipoEntidad, int entidadId, string mensaje, int? comentarioPadreId, int juegoId)
     {
         if (!Enum.TryParse<TipoEntidad>(tipoEntidad, true, out var tipo))
         {
@@ -125,14 +127,17 @@ public class ComentarioController : Controller
             userId=usuario.Id;
         }
 
-        var nuevoComentario = new Comentario
+        var nuevoComentario = new ComentarioViewModel
         {
+            JuegoId = juegoId, // Asigna el ID del juego correspondiente
             TipoEntidad = tipo,
             EntidadId = entidadId,
             Mensaje = mensaje,
             ComentarioPadreId = comentarioPadreId,
             FechaCreacion = DateTime.UtcNow,
-            UserId = userId
+            UserId = userId,
+            NombreUsuario = usuario.NombreUsuario
+            
         };
 
         bool resultado = await _comentarioService.GuardarComentario(nuevoComentario);
@@ -140,7 +145,7 @@ public class ComentarioController : Controller
         if (resultado)
         {
             // Podrías devolver un PartialView con el nuevo comentario para actualizar la lista dinámicamente
-            var comentarioViewModel = ConvertirAViewModelConRespuestas(nuevoComentario, new List<Comentario> { nuevoComentario }); // Solo el nuevo
+            var comentarioViewModel = ConvertirAViewModelConRespuestas(nuevoComentario, new List<ComentarioViewModel> { nuevoComentario }); // Solo el nuevo
             return PartialView("CajaComentarios/_ComentarioIndividual", comentarioViewModel);
             // O podrías simplemente devolver un Ok() y recargar la sección de comentarios con JS
             // return Ok();

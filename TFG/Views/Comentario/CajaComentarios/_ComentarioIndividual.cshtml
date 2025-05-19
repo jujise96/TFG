@@ -1,13 +1,13 @@
 ﻿@model TFG.Models.ComentarioViewModel
 
-<li class="media mb-3">
+<li class="media mb-3 list-unstyled">
     @* Aquí podrías mostrar la información del usuario (si la tienes) *@
     <div class="media-body">
-        <h5 class="mt-0 mb-1">Usuario @Model.UserId - @Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</h5>
+        <h5 class="mt-0 mb-1">Usuario @Model.NombreUsuario - @Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</h5>
         <p>@Model.Mensaje</p>
         @if (Model.Respuestas.Any())
         {
-            <ul class="list-unstyled ml-5">
+            <ul class="list-unstyled ml-5 list-unstyled">
                 @foreach (var respuesta in Model.Respuestas)
                 {
                     @await Html.PartialAsync("_ComentarioIndividual", respuesta)
