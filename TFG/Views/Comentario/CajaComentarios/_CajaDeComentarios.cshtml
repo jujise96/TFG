@@ -6,16 +6,19 @@
         <i class="fas fa-comments"></i> Comentarios (@Model.TotalComentarios)
     </div>
     <div class="card-body">
-        @if (Model.Comentarios.Any())
+        @if (Model.Comentarios is not null)
         {
-            @foreach (var comentario in Model.Comentarios)
+            @if (Model.Comentarios.Any())
             {
-                @await Html.PartialAsync("CajaComentarios/_ComentarioIndividual", comentario)
+                @foreach (var comentario in Model.Comentarios)
+                {
+                    @await Html.PartialAsync("CajaComentarios/_ComentarioIndividual", comentario)
+                }
             }
-        }
-        else
-        {
-            <p>No hay comentarios aún. ¡Sé el primero en comentar!</p>
+            else
+            {
+                <p>No hay comentarios aún. ¡Sé el primero en comentar!</p>
+            }
         }
     </div>
     <div class="card-footer small text-muted">
