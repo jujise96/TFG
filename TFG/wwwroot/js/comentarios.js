@@ -63,10 +63,28 @@
                 const form = target.closest('.form-nuevo-comentario');
                 const mensajeTextarea = form.querySelector('.mensaje-nuevo-comentario');
                 const mensajeRespuestaDiv = form.querySelector('.mensaje-respuesta-comentario');
+                const parentContainer = target.closest('[data-entidad-juegoid]');
 
                 const mensaje = mensajeTextarea.value.trim();
                 const currentTipoEntidad = form.dataset.tipoEntidad;
                 const currentEntidadId = form.dataset.entidadId;
+
+                let juegoIdEnviar = '';
+                if (currentTipoEntidad === 'Juego') {
+                    juegoIdEnviar = currentEntidadId; // Si es un juego, su ID es el ID del juego
+                } else {
+                    // Para Mision, Item, Truco, busca el JuegoId en el atributo data-entidad-JuegoId
+                    // del elemento comentariosWrapper (o el contenedor que lo tenga).
+                    // Asumimos que `comentariosWrapper` es el div que tiene el data-entidad-JuegoId
+                    // y que fue encontrado por `document.querySelectorAll('[id^="seccion-de-comentarios"]')`
+                    if (comentariosWrapper && comentariosWrapper.dataset.entidadJuegoid) {
+                        juegoIdEnviar = comentariosWrapper.dataset.entidadJuegoid;
+                    } else {
+                        console.warn(`No se encontró data-entidad-JuegoId para la entidad ${currentTipoEntidad} con ID ${currentEntidadId}.`);
+                        // Considera qué hacer si no se encuentra: ¿enviar 0? ¿bloquear?
+                        // Si quieres que se envíe 0, juegoIdEnviar ya sería 0 (vacío -> 0 en C#)
+                    }
+                }
 
                 if (mensaje === "") {
                     mostrarAlerta(mensajeRespuestaDiv, 'Por favor, escribe un comentario.', 'warning');
@@ -86,7 +104,7 @@
                             'Content-Type': 'application/x-www-form-urlencoded',
                             'RequestVerificationToken': antiForgeryToken
                         },
-                        body: `tipoEntidad=${currentTipoEntidad}&entidadId=${currentEntidadId}&mensaje=${encodeURIComponent(mensaje)}&comentarioPadreId=&juegoId=${currentTipoEntidad === 'Juego' ? currentEntidadId : ''}`
+                        body: `tipoEntidad=${currentTipoEntidad}&entidadId=${currentEntidadId}&mensaje=${encodeURIComponent(mensaje)}&comentarioPadreId=&juegoId=${juegoIdEnviar}`
                     });
 
                     if (response.ok) {
@@ -94,9 +112,20 @@
                         mostrarAlerta(mensajeRespuestaDiv, 'Comentario enviado.', 'success');
                         await cargarComentarios(currentTipoEntidad, currentEntidadId, comentariosWrapper); // Recargar la sección completa
                     } else {
+
                         const errorText = await response.text();
                         console.error('Error al enviar el comentario:', response.status, response.statusText, errorText);
-                        mostrarAlerta(mensajeRespuestaDiv, `Error al enviar el comentario: ${errorText || 'Inténtalo de nuevo.'}`, 'danger');
+                        // Asume que si es un 400 Bad Request, el texto de error es el mensaje de moderación
+                        if (response.status === 400) {
+                            mostrarAlerta(mensajeRespuestaDiv, `Error: ${errorText}`, 'danger');
+                        } else {
+                            mostrarAlerta(mensajeRespuestaDiv, `Error al enviar el comentario: ${errorText || 'Inténtalo de nuevo.'}`, 'danger');
+                        }
+
+                        //antiguo
+                        //const errorText = await response.text();
+                        //console.error('Error al enviar el comentario:', response.status, response.statusText, errorText);
+                        //mostrarAlerta(mensajeRespuestaDiv, `Error al enviar el comentario: ${errorText || 'Inténtalo de nuevo.'}`, 'danger');
                     }
                 } catch (error) {
                     console.error('Error de red o procesamiento al enviar comentario:', error);
@@ -137,11 +166,29 @@
                 const mensajeTextarea = respuestaForm.querySelector('.mensaje-respuesta-textarea');
                 const mensajeRespuestaDiv = respuestaForm.querySelector('.mensaje-respuesta-alerta');
                 const comentarioIndividual = target.closest('.comentario-individual'); // Para obtener el contexto
+                const parentContainer = target.closest('[data-entidad-juegoid]');
 
                 const currentTipoEntidad = comentarioIndividual.dataset.tipoEntidad;
                 const currentEntidadId = comentarioIndividual.dataset.entidadId;
 
                 const mensaje = mensajeTextarea.value.trim();
+
+                let juegoIdEnviar = '';
+                if (currentTipoEntidad === 'Juego') {
+                    juegoIdEnviar = currentEntidadId; // Si es un juego, su ID es el ID del juego
+                } else {
+                    // Para Mision, Item, Truco, busca el JuegoId en el atributo data-entidad-JuegoId
+                    // del elemento comentariosWrapper (o el contenedor que lo tenga).
+                    // Asumimos que `comentariosWrapper` es el div que tiene el data-entidad-JuegoId
+                    // y que fue encontrado por `document.querySelectorAll('[id^="seccion-de-comentarios"]')`
+                    if (comentariosWrapper && comentariosWrapper.dataset.entidadJuegoid) {
+                        juegoIdEnviar = comentariosWrapper.dataset.entidadJuegoid;
+                    } else {
+                        console.warn(`No se encontró data-entidad-JuegoId para la entidad ${currentTipoEntidad} con ID ${currentEntidadId}.`);
+                        // Considera qué hacer si no se encuentra: ¿enviar 0? ¿bloquear?
+                        // Si quieres que se envíe 0, juegoIdEnviar ya sería 0 (vacío -> 0 en C#)
+                    }
+                }
 
                 if (mensaje === "") {
                     mostrarAlerta(mensajeRespuestaDiv, 'Por favor, escribe tu respuesta.', 'warning');
@@ -161,7 +208,7 @@
                             'Content-Type': 'application/x-www-form-urlencoded',
                             'RequestVerificationToken': antiForgeryToken
                         },
-                        body: `tipoEntidad=${currentTipoEntidad}&entidadId=${currentEntidadId}&mensaje=${encodeURIComponent(mensaje)}&comentarioPadreId=${padreId}&juegoId=${currentTipoEntidad === 'Juego' ? currentEntidadId : ''}`
+                        body: `tipoEntidad=${currentTipoEntidad}&entidadId=${currentEntidadId}&mensaje=${encodeURIComponent(mensaje)}&comentarioPadreId=${padreId}&juegoId=${juegoIdEnviar}`
                     });
 
                     if (response.ok) {
@@ -170,9 +217,18 @@
                         // Recargar la sección completa para ver la nueva respuesta
                         await cargarComentarios(currentTipoEntidad, currentEntidadId, comentariosWrapper);
                     } else {
+
                         const errorText = await response.text();
                         console.error('Error al enviar la respuesta:', response.status, response.statusText, errorText);
-                        mostrarAlerta(mensajeRespuestaDiv, `Error al enviar la respuesta: ${errorText || 'Inténtalo de nuevo.'}`, 'danger');
+                        if (response.status === 400) {
+                            mostrarAlerta(mensajeRespuestaDiv, `Error: ${errorText}`, 'danger');
+                        } else {
+                            mostrarAlerta(mensajeRespuestaDiv, `Error al enviar la respuesta: ${errorText || 'Inténtalo de nuevo.'}`, 'danger');
+                        }
+                        //antiguo
+                        //const errorText = await response.text();
+                        //console.error('Error al enviar la respuesta:', response.status, response.statusText, errorText);
+                        //mostrarAlerta(mensajeRespuestaDiv, `Error al enviar la respuesta: ${errorText || 'Inténtalo de nuevo.'}`, 'danger');
                     }
                 } catch (error) {
                     console.error('Error de red o procesamiento al enviar respuesta:', error);

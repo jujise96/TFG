@@ -63,6 +63,11 @@ namespace TFG.Repositories
             using var connection = new SqlConnection(connectionString);
             try
             {
+                // Eliminar comentarios relacionados
+                await connection.ExecuteAsync(
+                "DELETE FROM Comentario WHERE TipoEntidad = @TipoEntidadItem AND EntidadId = @IdElemento",
+                new { TipoEntidadItem = (int)TipoEntidad.Item, IdElemento = idElemento });
+                // Eliminar item
                 await connection.ExecuteAsync(@"DELETE FROM Items 
                     WHERE Id =@Id AND Juegoid=@Juegoid ", new { Id = idElemento, Juegoid = Juegoid });
             }

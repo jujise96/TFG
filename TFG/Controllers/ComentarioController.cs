@@ -20,9 +20,10 @@ public class ComentarioController : Controller
     private readonly UserManager<Usuario> userManager;
     private readonly SignInManager<Usuario> signinmanager;
     private readonly IComentarioService _comentarioService;
+    private readonly IModeracionService _moderacionService;
 
 
-    public ComentarioController(ILogger<HomeController> logger, IJuegoService juegoService, IMisionService misionService, IItemService itemService, ITrucoService trucoService, SignInManager<Usuario> signinmanager, UserManager<Usuario> userManager, IComentarioService comentarioService)
+    public ComentarioController(ILogger<HomeController> logger, IJuegoService juegoService, IMisionService misionService, IItemService itemService, ITrucoService trucoService, SignInManager<Usuario> signinmanager, UserManager<Usuario> userManager, IComentarioService comentarioService, IModeracionService moderacionService)
     {
         _logger = logger;
         this.juegoService = juegoService;
@@ -32,6 +33,7 @@ public class ComentarioController : Controller
         this.signinmanager = signinmanager;
         this.userManager = userManager;
         _comentarioService = comentarioService;
+        _moderacionService = moderacionService;
     }
 
     public IActionResult Mensaje(string mensaje = "")
@@ -118,6 +120,13 @@ public class ComentarioController : Controller
         if (entidadId <= 0 || string.IsNullOrWhiteSpace(mensaje))
         {
             return BadRequest("Datos de comentario no válidos.");
+        }
+
+        var moderacionResultado = await _moderacionService.ModerarComentario(mensaje);
+        if (!moderacionResultado.EsApropiado)
+        {
+            // Devuelve un error 400 (Bad Request) con el mensaje de inapropiado
+            return BadRequest(moderacionResultado.MensajeError);
         }
 
         //var userId = userManager?.GetUserId(User);
