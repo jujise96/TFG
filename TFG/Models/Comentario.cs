@@ -7,9 +7,7 @@ namespace TFG.Models
     public class Comentario
     {
         public int Id { get; set; }
-
-        [Required]
-        public int JuegoId { get; set; }
+        public int? JuegoId { get; set; }
 
         [Required]
         public TipoEntidad TipoEntidad { get; set; }
