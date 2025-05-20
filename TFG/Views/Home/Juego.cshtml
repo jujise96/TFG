@@ -41,17 +41,21 @@
 </div>
 
 <div id="seccion-de-comentarios">
-    @await Html.PartialAsync("../Comentario/CajaComentarios/_CajaDeComentarios", new TFG.Models.CajaDeComentariosViewModel { TipoEntidad = "Juego", EntidadId = Model.Id })
+    @* Inicialmente vacío o con un spinner de carga. Los comentarios se cargarán vía JS. *@
+    @* @await Html.PartialAsync("../Comentario/CajaComentarios/_CajaDeComentarios", new TFG.Models.CajaDeComentariosViewModel { TipoEntidad = "Juego", EntidadId = Model.Id }) *@
+    <p>Cargando comentarios...</p>
 </div>
 
 @section Scripts {
+    @* Esto es importante para que el AntiForgeryToken esté disponible en el DOM cuando se necesite *@
+    @Html.AntiForgeryToken()
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             var tipoEntidad = "Juego";
             var entidadId = @Model.Id;
             var comentariosDiv = document.getElementById('seccion-de-comentarios');
 
-            // Función para obtener el AntiForgeryToken de forma segura del DOM
             function getAntiForgeryToken() {
                 const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
                 if (tokenInput) {
@@ -64,21 +68,53 @@
             // Función para inicializar los event listeners después de cargar/recargar comentarios
             function inicializarEventListeners() {
                 // Eliminar el listener existente para evitar duplicados si se llama varias veces
-                comentariosDiv.removeEventListener('click', handleComentariosDivClick);
-                comentariosDiv.addEventListener('click', handleComentariosDivClick);
+                // Es mejor adjuntar el listener directamente al #seccion-de-comentarios y usar delegación
+                // como ya lo estás haciendo con handleComentariosDivClick.
+                // Asegúrate de que handleComentariosDivClick solo se adjunte una vez al DOMContentLoaded.
+                // Si la función 'inicializarEventListeners' se llama después de cada AJAX,
+                // entonces 'handleComentariosDivClick' ya está bien para los clics en elementos
+                // que se añaden dinámicamente.
+                // Sin embargo, los listeners para el botón de 'nuevo comentario' deben ser re-adjuntados
+                // si el formulario se reemplaza.
+
+                // Remover y añadir el listener principal de delegación si es necesario,
+                // aunque si comentariosDiv.innerHTML se reemplaza, el listener original se perdería
+                // y se tendría que re-adjuntar. La mejor práctica es adjuntarlo una sola vez en DOMContentLoaded.
+                // No lo remuevas y añadas aquí a menos que el propio 'comentariosDiv' se reemplace.
+                // Dado que el 'comentariosDiv' es un div que se mantiene y solo su innerHTML cambia,
+                // el listener en él debería persistir.
+                // Así que, el handleComentariosDivClick está bien.
 
                 // Re-adjuntar event listener para el botón de nuevo comentario si el HTML se recargó
                 var enviarBtnNuevoComentario = comentariosDiv.querySelector('#formNuevoComentario button[type="button"]');
                 if (enviarBtnNuevoComentario) {
-                    enviarBtnNuevoComentario.removeEventListener('click', enviarComentario); // Evitar duplicados
+                    // Remover para evitar duplicados si esta función se llama varias veces por recarga
+                    enviarBtnNuevoComentario.removeEventListener('click', enviarComentario);
                     enviarBtnNuevoComentario.addEventListener('click', enviarComentario);
                 } else {
-                    console.error('No se encontró el botón de enviar nuevo comentario después de la carga.');
+                    console.warn('No se encontró el botón de enviar nuevo comentario después de la carga. Esto es esperado si el usuario no está autenticado.');
+                }
+            }
+
+            // Nueva función para cargar los comentarios (se llamará después de crear/eliminar)
+            async function cargarComentarios() {
+                try {
+                    const response = await fetch(`/Comentario/MostrarComentarios?tipoEntidad=${tipoEntidad}&entidadId=${entidadId}`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const data = await response.text();
+                    comentariosDiv.innerHTML = data;
+                    inicializarEventListeners(); // Volver a inicializar listeners para los nuevos elementos
+                } catch (error) {
+                    console.error('Error al cargar los comentarios:', error);
+                    comentariosDiv.innerHTML = '<p class="alert alert-danger">Error al cargar los comentarios.</p>';
                 }
             }
 
             // Función delegada para manejar todos los clics dentro de comentariosDiv
             function handleComentariosDivClick(event) {
+                // Lógica para el botón 'Responder' (ya existente)
                 if (event.target.classList.contains('btn-responder')) {
                     const comentarioId = event.target.dataset.comentarioId;
                     const respuestaForm = document.getElementById(`respuesta-form-${comentarioId}`);
@@ -87,6 +123,7 @@
                     }
                 }
 
+                // Lógica para el botón 'Cancelar Respuesta' (ya existente)
                 if (event.target.classList.contains('btn-cancelar-respuesta')) {
                     const respuestaForm = event.target.closest('div[id^="respuesta-form-"]');
                     if (respuestaForm) {
@@ -102,17 +139,12 @@
                     }
                 }
 
+                // Lógica para el botón 'Enviar Respuesta'
                 if (event.target.classList.contains('btn-enviar-respuesta')) {
                     const padreId = event.target.dataset.padreId;
                     const respuestaForm = event.target.closest('div[id^="respuesta-form-"]');
                     const mensajeTextarea = respuestaForm.querySelector('.mensaje-respuesta');
                     const mensajeRespuestaDiv = respuestaForm.querySelector('[id^="mensaje-respuesta-"]');
-                    const tipoEntidadInput = respuestaForm.querySelector('#tipoEntidad'); // Busca dentro del formulario de respuesta si existe
-                    const entidadIdInput = respuestaForm.querySelector('#entidadId');   // O si estos son globales como en tu caso, manténlos así
-
-                    // Asegúrate de que estos valores globales sean los correctos
-                    const tipoEntidad = tipoEntidadInput ? tipoEntidadInput.value : "Juego";
-                    const entidadId = entidadIdInput ? entidadIdInput.value : @Model.Id;
 
                     const mensaje = mensajeTextarea.value.trim();
                     const juegoId = entidadId; // En tu caso, entidadId y juegoId son lo mismo para un juego
@@ -132,13 +164,13 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
-                            'RequestVerificationToken': antiForgeryToken // <-- ¡Ahora se envía el VALOR!
+                            'RequestVerificationToken': antiForgeryToken
                         },
                         body: `tipoEntidad=${tipoEntidad}&entidadId=${entidadId}&mensaje=${encodeURIComponent(mensaje)}&comentarioPadreId=${padreId}&juegoId=${juegoId}`
                     })
                     .then(response => {
                         if (response.ok) {
-                            return response.text();
+                            return response.text(); // Devuelve texto, no un partial view en este caso
                         } else {
                             console.error('Error al enviar la respuesta:', response.status, response.statusText);
                             mensajeRespuestaDiv.innerHTML = '<div class="alert alert-danger">Error al enviar la respuesta. Inténtalo de nuevo.</div>';
@@ -146,26 +178,13 @@
                         }
                     })
                     .then(data => {
-                        const comentarioPadre = event.target.closest('.media');
-                        let respuestasContainer = comentarioPadre.querySelector('.list-unstyled.ml-5');
-                        if (!respuestasContainer) {
-                             respuestasContainer = document.createElement('ul');
-                             respuestasContainer.classList.add('list-unstyled', 'ml-5');
-                             comentarioPadre.querySelector('.media-body').appendChild(respuestasContainer);
-                        }
-                        const nuevaRespuestaLi = document.createElement('li');
-                        nuevaRespuestaLi.classList.add('media', 'mb-3', 'list-unstyled');
-                        nuevaRespuestaLi.innerHTML = data;
-                        respuestasContainer.appendChild(nuevaRespuestaLi);
-
-                        const respuestaFormulario = event.target.closest('div[id^="respuesta-form-"]');
-                        const mensajeInput = respuestaFormulario.querySelector('.mensaje-respuesta');
-                        const mensajeResultado = respuestaFormulario.querySelector('[id^="mensaje-respuesta-"]');
-                        mensajeInput.value = "";
-                        respuestaFormulario.classList.add('d-none');
-                        mensajeResultado.innerHTML = '<div class="alert alert-success">Respuesta enviada.</div>';
+                        // Después de crear la respuesta, recargar la sección de comentarios
+                        cargarComentarios();
+                        mensajeTextarea.value = ""; // Limpiar el textarea
+                        respuestaForm.classList.add('d-none'); // Ocultar el formulario
+                        mensajeRespuestaDiv.innerHTML = '<div class="alert alert-success">Respuesta enviada.</div>';
                         setTimeout(() => {
-                            mensajeResultado.innerHTML = "";
+                            mensajeRespuestaDiv.innerHTML = "";
                         }, 3000);
                     })
                     .catch(error => {
@@ -173,6 +192,50 @@
                     });
                 }
 
+                // Lógica para el botón 'Eliminar Comentario'
+                if (event.target.classList.contains('btn-eliminar-comentario')) {
+                    const comentarioId = event.target.dataset.comentarioId;
+                    if (confirm('¿Estás seguro de que quieres eliminar este comentario y todas sus respuestas?')) {
+                        const antiForgeryToken = getAntiForgeryToken();
+                        if (!antiForgeryToken) {
+                            alert('Error de seguridad: No se pudo obtener el token de verificación.');
+                            return;
+                        }
+
+                        fetch('/Comentario/EliminarComentario', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'RequestVerificationToken': antiForgeryToken
+                            },
+                            body: `comentarioId=${comentarioId}`
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                // Si la eliminación fue exitosa, recargar la sección de comentarios
+                                cargarComentarios();
+                            } else if (response.status === 403) {
+                                alert('No tienes permiso para eliminar este comentario.');
+                            } else if (response.status === 404) {
+                                alert('El comentario que intentas eliminar no fue encontrado.');
+                            } else {
+                                response.text().then(errorMessage => {
+                                    console.error('Error al eliminar el comentario:', response.status, response.statusText, errorMessage);
+                                    alert(`Error al eliminar el comentario: ${errorMessage || 'Inténtalo de nuevo.'}`);
+                                }).catch(() => {
+                                    console.error('Error al eliminar el comentario:', response.status, response.statusText);
+                                    alert('Error al eliminar el comentario. Inténtalo de nuevo.');
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error de red o procesamiento:', error);
+                            alert('Ocurrió un error inesperado. Por favor, inténtalo de nuevo.');
+                        });
+                    }
+                }
+
+                // Lógica para mostrar/ocultar respuestas (ya existente)
                 if (event.target.classList.contains('btn-mostrar-respuestas')) {
                     const comentarioId = event.target.dataset.comentarioId;
                     const respuestasContainer = document.getElementById(`respuestas-de-${comentarioId}`);
@@ -183,79 +246,20 @@
                             : `Ocultar respuestas`;
                     }
                 }
-
-                        if (event.target.classList.contains('btn-eliminar-comentario')) {
-            const comentarioId = event.target.dataset.comentarioId;
-            if (confirm('¿Estás seguro de que quieres eliminar este comentario?')) {
-                const antiForgeryToken = getAntiForgeryToken();
-                if (!antiForgeryToken) {
-                    alert('Error de seguridad: No se pudo obtener el token de verificación.');
-                    return;
-                }
-
-                fetch('/Comentario/EliminarComentario', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'RequestVerificationToken': antiForgeryToken
-                    },
-                    body: `comentarioId=${comentarioId}`
-                })
-                .then(response => {
-                    if (response.ok) {
-                        // *** CAMBIO CLAVE AQUÍ: Eliminar el elemento del DOM directamente ***
-                        const comentarioLi = event.target.closest('.media'); // Encuentra el elemento padre que representa el comentario
-                        if (comentarioLi) {
-                            comentarioLi.remove(); // ¡Lo elimina del HTML!
-                            // Opcional: Mostrar un mensaje de éxito temporal al usuario
-                            console.log(`Comentario con ID ${comentarioId} eliminado exitosamente del DOM.`);
-                            // alert('Comentario eliminado con éxito.'); // No intrusivo, pero si lo necesitas
-                        } else {
-                            console.warn(`No se encontró el elemento '.media' para el comentario con ID ${comentarioId} después de la eliminación. Recargando la sección.`);
-                            // Si por alguna razón no se encuentra el elemento para eliminarlo, recarga la sección como fallback
-                            fetch(`/Comentario/MostrarComentarios?tipoEntidad=${tipoEntidad}&entidadId=${entidadId}`)
-                                .then(r => r.text())
-                                .then(data => {
-                                    comentariosDiv.innerHTML = data;
-                                    inicializarEventListeners();
-                                });
-                        }
-                    } else if (response.status === 403) {
-                        alert('No tienes permiso para eliminar este comentario.');
-                    } else if (response.status === 404) {
-                        alert('El comentario que intentas eliminar no fue encontrado.');
-                    } else {
-                        response.text().then(errorMessage => {
-                            console.error('Error al eliminar el comentario:', response.status, response.statusText, errorMessage);
-                            alert(`Error al eliminar el comentario: ${errorMessage || 'Inténtalo de nuevo.'}`);
-                        }).catch(() => {
-                            console.error('Error al eliminar el comentario:', response.status, response.statusText);
-                            alert('Error al eliminar el comentario. Inténtalo de nuevo.');
-                        });
-                        throw new Error('Error al eliminar el comentario.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error de red o procesamiento:', error);
-                    alert('Ocurrió un error inesperado. Por favor, inténtalo de nuevo.');
-                });
-            }
-        }
             } // Fin de handleComentariosDivClick
 
+            // Función para enviar un nuevo comentario principal
             function enviarComentario() {
                 var mensaje = document.getElementById('mensajeNuevoComentario').value;
-                var tipoEntidad = "Juego"; // Estos ya son globales para la sección
-                var entidadId = @Model.Id;
                 var mensajeRespuesta = document.getElementById('mensajeRespuestaComentario');
-                var juegoId = entidadId;
+                var juegoId = entidadId; // EntidadId para el juego
 
                 if (mensaje.trim() === "") {
                     mensajeRespuesta.innerHTML = '<div class="alert alert-warning">Por favor, escribe un comentario.</div>';
                     return;
                 }
 
-                const antiForgeryToken = getAntiForgeryToken(); // <-- ¡Y aquí!
+                const antiForgeryToken = getAntiForgeryToken();
                 if (!antiForgeryToken) {
                     alert('Error de seguridad: No se pudo obtener el token de verificación.');
                     return;
@@ -265,13 +269,13 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
-                        'RequestVerificationToken': antiForgeryToken // <-- ¡Y aquí!
+                        'RequestVerificationToken': antiForgeryToken
                     },
                     body: `tipoEntidad=${tipoEntidad}&entidadId=${entidadId}&mensaje=${encodeURIComponent(mensaje)}&comentarioPadreId=&juegoId=${juegoId}`
                 })
                 .then(response => {
                     if (response.ok) {
-                        return response.text();
+                        return response.text(); // La respuesta ya no es el partial view individual
                     } else {
                         console.error('Error al enviar el comentario:', response.status, response.statusText);
                         mensajeRespuesta.innerHTML = '<div class="alert alert-danger">Error al enviar el comentario. Inténtalo de nuevo.</div>';
@@ -279,51 +283,24 @@
                     }
                 })
                 .then(data => {
-                    var comentariosContainer = comentariosDiv.querySelector('.card-body ul'); // Asumo que .card-body ul es donde quieres insertar
-                    if (!comentariosContainer) {
-                        console.error("No se encontró el contenedor de comentarios para añadir el nuevo comentario.");
-                        // Podrías intentar recargar toda la sección si no se encuentra el contenedor
-                        // comentariosDiv.innerHTML = data; // O volver a cargar fetch(`/Comentario/MostrarComentarios...`)
-                        // inicializarEventListeners();
-                        return;
-                    }
-                    var nuevoComentarioLi = document.createElement('li');
-                    nuevoComentarioLi.classList.add('media', 'mb-3', 'list-unstyled');
-                    nuevoComentarioLi.innerHTML = data;
-                    comentariosContainer.insertBefore(nuevoComentarioLi, comentariosContainer.firstChild);
-
-                    document.getElementById('mensajeNuevoComentario').value = "";
+                    // Después de crear el comentario, recargar la sección de comentarios
+                    cargarComentarios();
+                    document.getElementById('mensajeNuevoComentario').value = ""; // Limpiar el textarea
                     mensajeRespuesta.innerHTML = '<div class="alert alert-success">Comentario enviado.</div>';
                     setTimeout(() => {
                         mensajeRespuesta.innerHTML = "";
                     }, 3000);
-
-                    // Si el nuevo comentario tiene botones que necesitan listeners, re-inicialízalos
-                    inicializarEventListeners();
                 })
                 .catch(error => {
                     console.error('Error:', error);
                 });
             }
 
-            // Cargar los comentarios iniciales
-            fetch(`/Comentario/MostrarComentarios?tipoEntidad=${tipoEntidad}&entidadId=${entidadId}`)
-                .then(response => {
-                    if (!response.ok) {
-                        console.error('Error en la respuesta del servidor:', response.status, response.statusText);
-                        comentariosDiv.innerHTML = '<p>Error al cargar los comentarios desde el servidor.</p>';
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.text();
-                })
-                .then(data => {
-                    comentariosDiv.innerHTML = data;
-                    inicializarEventListeners(); // Inicializar después de cargar el HTML de comentarios
-                })
-                .catch(error => {
-                    console.error('Error de red al cargar los comentarios:', error);
-                    comentariosDiv.innerHTML = '<p>Error de red al intentar cargar los comentarios.</p>';
-                });
+            // Adjuntar el listener principal de delegación una sola vez al cargar el DOM
+            comentariosDiv.addEventListener('click', handleComentariosDivClick);
+
+            // Cargar los comentarios iniciales al cargar la página
+            cargarComentarios();
         });
     </script>
 }

@@ -145,11 +145,8 @@ public class ComentarioController : Controller
 
         if (resultado)
         {
-            // Podrías devolver un PartialView con el nuevo comentario para actualizar la lista dinámicamente
-            var comentarioViewModel = ConvertirAViewModelConRespuestas(nuevoComentario, new List<ComentarioViewModel> { nuevoComentario }); // Solo el nuevo
-            return PartialView("CajaComentarios/_ComentarioIndividual", comentarioViewModel);
-            // O podrías simplemente devolver un Ok() y recargar la sección de comentarios con JS
-            // return Ok();
+            // Devuelve un simple OK, el frontend se encargará de recargar la sección completa.
+            return Ok();
         }
         else
         {
