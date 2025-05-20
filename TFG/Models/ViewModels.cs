@@ -143,6 +143,7 @@ namespace TFG.Models
         public string Nombre { get; set; }
         public string Descripcion { get; set; }
         public string Imagen { get; set; }
+        public IFormFile? ImagenFile { get; set; }
         public string StartTrigger { get; set; }
         public string Bugs { get; set; }
         public TipoQuest TipoQuest { get; set; }
@@ -157,6 +158,7 @@ namespace TFG.Models
         public string Nombre { get; set; }
         public string Descripcion { get; set; }
         public string Imagen { get; set; }
+        public IFormFile? ImagenFile { get; set; }
         public string Bugs { get; set; }
         public TipoItem TipoItem { get; set; }
         public bool Completada { get; set; }
@@ -175,6 +177,7 @@ namespace TFG.Models
         public string Descripcion { get; set; }
 
         public string Imagen { get; set; }
+        public IFormFile? ImagenFile { get; set; }
         public string Bugs { get; set; }
     }
 

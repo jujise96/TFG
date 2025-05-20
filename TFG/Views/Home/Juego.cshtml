@@ -20,11 +20,16 @@
 </div>
 
 <div class="container mt-4">
+    @if (!string.IsNullOrEmpty(Model.Imagen))
+    {
+            <img src="@Model.Imagen" alt="Imagen de @Model.Nombre" class="img-fluid rounded mt-2" style="max-width: 400px; height: auto;" />
+    }
     <h2>Información del Juego</h2>
     <ul class="list-unstyled">
         <li><strong>Nombre:</strong> @Model.Nombre</li>
         <li><strong>IdElem:</strong> @Model.IdElem</li>
         <li><strong>Descripción:</strong> @Model.Descripcion</li>
+        
     </ul>
 
     <h2>Secciones disponibles</h2>

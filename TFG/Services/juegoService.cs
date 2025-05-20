@@ -13,6 +13,7 @@ namespace TFG.Services
         Task<bool> EliminarJuego(int idElemento);
         Task<bool> crearjuego(Juego juego);
         Task<bool> ModificarJuego(Juego juego);
+        Task<List<string>> ObtenerUrlsImagenesHijosDeJuego(int juegoId);
     }
     
     public class JuegoService : IJuegoService
@@ -57,6 +58,11 @@ namespace TFG.Services
         public async Task<bool> ModificarJuego(Juego juego)
         {
             return await _repositorioJuego.ModificarJuego(juego);
+        }
+
+        public async Task<List<string>> ObtenerUrlsImagenesHijosDeJuego(int juegoId)
+        {
+            return await _repositorioJuego.ObtenerUrlsImagenesHijosDeJuego(juegoId);
         }
     }
 }

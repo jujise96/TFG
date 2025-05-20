@@ -9,7 +9,7 @@
 </div>
 
 <div class="container mt-4">
-    <form asp-action="ModificarItem" method="post">
+    <form asp-action="ModificarItem" method="post" enctype="multipart/form-data">
         @* Si la Id ya existe (estamos editando), incluirla como campo oculto *@
         @if (Model?.Id > 0)
         {
@@ -41,9 +41,27 @@
         </div>
 
         <div class="form-group">
-            <label asp-for="Imagen"></label>
-            <input asp-for="Imagen" class="form-control" value="@Model.Imagen" />
-            <span asp-validation-for="Imagen" class="text-danger"></span>
+            <label for="ImagenFile">Imagen Actual:</label>
+            @if (!string.IsNullOrEmpty(Model?.Imagen))
+            {
+                <div class="mb-2">
+                    <img src="@Model.Imagen" alt="Imagen actual del juego" class="img-thumbnail" style="max-width: 200px;" />
+                </div>
+            }
+            else
+            {
+                <p>No hay imagen actual.</p>
+            }
+
+            <label for="ImagenFile">Cambiar Imagen (opcional):</label>
+            @* Este input es para la nueva imagen. El "name" debe coincidir con la propiedad IFormFile en tu ViewModel/Model *@
+            <input type="file" id="ImagenFile" name="ImagenFile" class="form-control" accept="image/*" />
+            <span class="text-danger" asp-validation-for="Imagen"></span> @* La validación para la propiedad string 'Imagen' en tu modelo/ViewModel *@
+
+            @* IMPORTANTE: Campo oculto para la URL de la imagen actual.
+                Esto es crucial si el usuario no sube una nueva imagen pero quieres mantener la existente.
+                Tu controlador debe leer este campo si ImagenFile es null. *@
+            <input type="hidden" asp-for="Imagen" value="@Model?.Imagen" />
         </div>
 
         <div class="form-group">

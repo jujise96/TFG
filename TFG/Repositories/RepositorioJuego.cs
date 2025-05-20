@@ -15,6 +15,7 @@ namespace TFG.Repositories
         Task<bool> EliminarJuego(int idElemento);
         Task<bool> crearjuego(Juego juego);
         Task<bool> ModificarJuego(Juego juego);
+        Task<List<string>> ObtenerUrlsImagenesHijosDeJuego(int juegoId);
     }
     public class RepositorioJuego : IRepositorioJuego
     {
@@ -125,6 +126,29 @@ namespace TFG.Repositories
             using var connection = new SqlConnection(connectionString);
             var truco = await connection.QueryFirstOrDefaultAsync<ElementoUsuarioViewModel>("SELECT Id, Nombre FROM Truco WHERE JuegoId = @id", new { id });
             return truco;
+        }
+
+        public async Task<List<string>> ObtenerUrlsImagenesHijosDeJuego(int juegoId)
+        {
+            string sqlQuery = @"
+                SELECT Imagen FROM Mision WHERE JuegoId = @JuegoId AND Imagen IS NOT NULL AND Imagen != ''
+                UNION ALL
+                SELECT Imagen FROM Items WHERE JuegoId = @JuegoId AND Imagen IS NOT NULL AND Imagen != ''";
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+
+                // Dapper ejecutará la consulta combinada y mapeará todos los resultados
+                // a una lista de strings (las URLs de las imágenes).
+                var imageUrls = await connection.QueryAsync<string>(
+                    sqlQuery,
+                    new { JuegoId = juegoId } // Pasamos el parámetro para la consulta
+                );
+
+                // Convertimos el IEnumerable<string> a List<string> y lo devolvemos
+                return imageUrls.ToList();
+            }
         }
     }
 }

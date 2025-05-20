@@ -39,13 +39,16 @@
     }
 </div>
 
+@if (!string.IsNullOrEmpty(Model.Imagen))
+{
+    <img src="@Model.Imagen" alt="Imagen de @Model.Nombre" class="img-fluid rounded mt-2" style="max-width: 400px; height: auto;" />
+}
 <div class="container mt-4">
-    <h2>Información de la Misión</h2>
+    <h2>Información del Item</h2>
     <ul class="list-unstyled">
         <li><strong>Nombre:</strong> @Model.Nombre</li>
         <li><strong>IdElem:</strong> @Model.IdElem</li>
         <li><strong>Descripción:</strong> @Model.Descripcion</li>
-        <li><strong>Imagen:</strong> @Model.Imagen</li>
     </ul>
 </div>
 
