@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TFG.Repositories;
+using Microsoft.AspNetCore.Mvc;
 
 namespace TFG.Services
 {
@@ -9,7 +10,8 @@ namespace TFG.Services
     {
         Task<IEnumerable<ComentarioViewModel>> ObtenerComentariosPorEntidad(TipoEntidad tipoEntidad, int entidadId);
         Task<bool> GuardarComentario(ComentarioViewModel nuevoComentario);
-        // Otros métodos relacionados con comentarios...
+        Task<ComentarioViewModel> ObtenerComentariosPorId(int comentarioId);
+        Task<bool> EliminarComentario(int idcomentario);
     }
 
     public class ComentarioService : IComentarioService
@@ -32,6 +34,15 @@ namespace TFG.Services
             return await _comentarioRepository.GuardarComentario(nuevoComentario);
         }
 
-        // Otros métodos del servicio...
+        public async Task<ComentarioViewModel> ObtenerComentariosPorId(int comentarioId)
+        {
+            return await _comentarioRepository.ObtenerComentarioPorIdAsync(comentarioId);
+        }
+
+        public async Task<bool> EliminarComentario(int idcomentario)
+        {
+            return await _comentarioRepository.EliminarComentario(idcomentario);
+        }
+
     }
 }

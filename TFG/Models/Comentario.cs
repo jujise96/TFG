@@ -21,7 +21,7 @@ namespace TFG.Models
         [ForeignKey("ComentarioPadre")]
         public int? ComentarioPadreId { get; set; }
         public Comentario ComentarioPadre { get; set; }
-
+        public ICollection<Comentario> Respuestas { get; set; }
         [Required]
         [MaxLength(1000)] // Ejemplo de longitud máxima para el mensaje
         public string Mensaje { get; set; }
@@ -29,5 +29,6 @@ namespace TFG.Models
         public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
 
         public int UserId { get; set; }
+        public Usuario Usuario { get; set; } 
     }
 }

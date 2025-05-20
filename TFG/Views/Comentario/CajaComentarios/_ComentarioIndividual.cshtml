@@ -6,6 +6,10 @@
         <p>@Model.Mensaje</p>
         @if (User.Identity.IsAuthenticated)
         {
+            @if (Model.NombreUsuario == User.Identity.Name || User.IsInRole("Admin"))
+            {
+                <button class="btn btn-sm btn-danger btn-eliminar-comentario" data-comentario-id="@Model.Id">Eliminar</button>
+            }
             <button class="btn btn-sm btn-outline-primary btn-responder" data-comentario-id="@Model.Id">Responder</button>
             <div id="respuesta-form-@Model.Id" class="mt-2 d-none">
                 <div class="form-group">

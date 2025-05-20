@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TFG.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class pruebarearranque : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,7 +19,9 @@ namespace TFG.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     IdElem = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Nombre = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Descripcion = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Descripcion = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Imagen = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Bugs = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -161,6 +163,42 @@ namespace TFG.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Comentario",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    JuegoId = table.Column<int>(type: "int", nullable: false),
+                    TipoEntidad = table.Column<int>(type: "int", nullable: false),
+                    EntidadId = table.Column<int>(type: "int", nullable: false),
+                    ComentarioPadreId = table.Column<int>(type: "int", nullable: true),
+                    Mensaje = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    FechaCreacion = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    UsuarioId = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Comentario", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Comentario_Comentario_ComentarioPadreId",
+                        column: x => x.ComentarioPadreId,
+                        principalTable: "Comentario",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Comentario_Juego_JuegoId",
+                        column: x => x.JuegoId,
+                        principalTable: "Juego",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Comentario_Usuarios_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "LoginsExternos",
                 columns: table => new
                 {
@@ -237,6 +275,21 @@ namespace TFG.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Comentario_ComentarioPadreId",
+                table: "Comentario",
+                column: "ComentarioPadreId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Comentario_JuegoId",
+                table: "Comentario",
+                column: "JuegoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Comentario_UsuarioId",
+                table: "Comentario",
+                column: "UsuarioId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Items_JuegoId",
                 table: "Items",
                 column: "JuegoId");
@@ -288,6 +341,9 @@ namespace TFG.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Administradores");
+
+            migrationBuilder.DropTable(
+                name: "Comentario");
 
             migrationBuilder.DropTable(
                 name: "LoginsExternos");

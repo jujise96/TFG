@@ -51,6 +51,262 @@
             var entidadId = @Model.Id;
             var comentariosDiv = document.getElementById('seccion-de-comentarios');
 
+            // Función para obtener el AntiForgeryToken de forma segura del DOM
+            function getAntiForgeryToken() {
+                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                if (tokenInput) {
+                    return tokenInput.value;
+                }
+                console.error("No se encontró el AntiForgeryToken en el DOM.");
+                return null;
+            }
+
+            // Función para inicializar los event listeners después de cargar/recargar comentarios
+            function inicializarEventListeners() {
+                // Eliminar el listener existente para evitar duplicados si se llama varias veces
+                comentariosDiv.removeEventListener('click', handleComentariosDivClick);
+                comentariosDiv.addEventListener('click', handleComentariosDivClick);
+
+                // Re-adjuntar event listener para el botón de nuevo comentario si el HTML se recargó
+                var enviarBtnNuevoComentario = comentariosDiv.querySelector('#formNuevoComentario button[type="button"]');
+                if (enviarBtnNuevoComentario) {
+                    enviarBtnNuevoComentario.removeEventListener('click', enviarComentario); // Evitar duplicados
+                    enviarBtnNuevoComentario.addEventListener('click', enviarComentario);
+                } else {
+                    console.error('No se encontró el botón de enviar nuevo comentario después de la carga.');
+                }
+            }
+
+            // Función delegada para manejar todos los clics dentro de comentariosDiv
+            function handleComentariosDivClick(event) {
+                if (event.target.classList.contains('btn-responder')) {
+                    const comentarioId = event.target.dataset.comentarioId;
+                    const respuestaForm = document.getElementById(`respuesta-form-${comentarioId}`);
+                    if (respuestaForm) {
+                        respuestaForm.classList.remove('d-none');
+                    }
+                }
+
+                if (event.target.classList.contains('btn-cancelar-respuesta')) {
+                    const respuestaForm = event.target.closest('div[id^="respuesta-form-"]');
+                    if (respuestaForm) {
+                        respuestaForm.classList.add('d-none');
+                        const mensajeRespuestaDiv = respuestaForm.querySelector('[id^="mensaje-respuesta-"]');
+                        if (mensajeRespuestaDiv) {
+                            mensajeRespuestaDiv.innerHTML = '';
+                        }
+                        const textarea = respuestaForm.querySelector('.mensaje-respuesta');
+                        if (textarea) {
+                            textarea.value = '';
+                        }
+                    }
+                }
+
+                if (event.target.classList.contains('btn-enviar-respuesta')) {
+                    const padreId = event.target.dataset.padreId;
+                    const respuestaForm = event.target.closest('div[id^="respuesta-form-"]');
+                    const mensajeTextarea = respuestaForm.querySelector('.mensaje-respuesta');
+                    const mensajeRespuestaDiv = respuestaForm.querySelector('[id^="mensaje-respuesta-"]');
+                    const tipoEntidadInput = respuestaForm.querySelector('#tipoEntidad'); // Busca dentro del formulario de respuesta si existe
+                    const entidadIdInput = respuestaForm.querySelector('#entidadId');   // O si estos son globales como en tu caso, manténlos así
+
+                    // Asegúrate de que estos valores globales sean los correctos
+                    const tipoEntidad = tipoEntidadInput ? tipoEntidadInput.value : "Juego";
+                    const entidadId = entidadIdInput ? entidadIdInput.value : @Model.Id;
+
+                    const mensaje = mensajeTextarea.value.trim();
+                    const juegoId = entidadId; // En tu caso, entidadId y juegoId son lo mismo para un juego
+
+                    if (mensaje === "") {
+                        mensajeRespuestaDiv.innerHTML = '<div class="alert alert-warning">Por favor, escribe tu respuesta.</div>';
+                        return;
+                    }
+
+                    const antiForgeryToken = getAntiForgeryToken();
+                    if (!antiForgeryToken) {
+                        alert('Error de seguridad: No se pudo obtener el token de verificación.');
+                        return;
+                    }
+
+                    fetch('/Comentario/CrearComentario', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'RequestVerificationToken': antiForgeryToken // <-- ¡Ahora se envía el VALOR!
+                        },
+                        body: `tipoEntidad=${tipoEntidad}&entidadId=${entidadId}&mensaje=${encodeURIComponent(mensaje)}&comentarioPadreId=${padreId}&juegoId=${juegoId}`
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            return response.text();
+                        } else {
+                            console.error('Error al enviar la respuesta:', response.status, response.statusText);
+                            mensajeRespuestaDiv.innerHTML = '<div class="alert alert-danger">Error al enviar la respuesta. Inténtalo de nuevo.</div>';
+                            throw new Error('Error al enviar la respuesta.');
+                        }
+                    })
+                    .then(data => {
+                        const comentarioPadre = event.target.closest('.media');
+                        let respuestasContainer = comentarioPadre.querySelector('.list-unstyled.ml-5');
+                        if (!respuestasContainer) {
+                             respuestasContainer = document.createElement('ul');
+                             respuestasContainer.classList.add('list-unstyled', 'ml-5');
+                             comentarioPadre.querySelector('.media-body').appendChild(respuestasContainer);
+                        }
+                        const nuevaRespuestaLi = document.createElement('li');
+                        nuevaRespuestaLi.classList.add('media', 'mb-3', 'list-unstyled');
+                        nuevaRespuestaLi.innerHTML = data;
+                        respuestasContainer.appendChild(nuevaRespuestaLi);
+
+                        const respuestaFormulario = event.target.closest('div[id^="respuesta-form-"]');
+                        const mensajeInput = respuestaFormulario.querySelector('.mensaje-respuesta');
+                        const mensajeResultado = respuestaFormulario.querySelector('[id^="mensaje-respuesta-"]');
+                        mensajeInput.value = "";
+                        respuestaFormulario.classList.add('d-none');
+                        mensajeResultado.innerHTML = '<div class="alert alert-success">Respuesta enviada.</div>';
+                        setTimeout(() => {
+                            mensajeResultado.innerHTML = "";
+                        }, 3000);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                }
+
+                if (event.target.classList.contains('btn-mostrar-respuestas')) {
+                    const comentarioId = event.target.dataset.comentarioId;
+                    const respuestasContainer = document.getElementById(`respuestas-de-${comentarioId}`);
+                    if (respuestasContainer) {
+                        respuestasContainer.classList.toggle('d-none');
+                        event.target.textContent = respuestasContainer.classList.contains('d-none')
+                            ? `Ver ${respuestasContainer.querySelectorAll('li.media').length} respuestas`
+                            : `Ocultar respuestas`;
+                    }
+                }
+
+                        if (event.target.classList.contains('btn-eliminar-comentario')) {
+            const comentarioId = event.target.dataset.comentarioId;
+            if (confirm('¿Estás seguro de que quieres eliminar este comentario?')) {
+                const antiForgeryToken = getAntiForgeryToken();
+                if (!antiForgeryToken) {
+                    alert('Error de seguridad: No se pudo obtener el token de verificación.');
+                    return;
+                }
+
+                fetch('/Comentario/EliminarComentario', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': antiForgeryToken
+                    },
+                    body: `comentarioId=${comentarioId}`
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // *** CAMBIO CLAVE AQUÍ: Eliminar el elemento del DOM directamente ***
+                        const comentarioLi = event.target.closest('.media'); // Encuentra el elemento padre que representa el comentario
+                        if (comentarioLi) {
+                            comentarioLi.remove(); // ¡Lo elimina del HTML!
+                            // Opcional: Mostrar un mensaje de éxito temporal al usuario
+                            console.log(`Comentario con ID ${comentarioId} eliminado exitosamente del DOM.`);
+                            // alert('Comentario eliminado con éxito.'); // No intrusivo, pero si lo necesitas
+                        } else {
+                            console.warn(`No se encontró el elemento '.media' para el comentario con ID ${comentarioId} después de la eliminación. Recargando la sección.`);
+                            // Si por alguna razón no se encuentra el elemento para eliminarlo, recarga la sección como fallback
+                            fetch(`/Comentario/MostrarComentarios?tipoEntidad=${tipoEntidad}&entidadId=${entidadId}`)
+                                .then(r => r.text())
+                                .then(data => {
+                                    comentariosDiv.innerHTML = data;
+                                    inicializarEventListeners();
+                                });
+                        }
+                    } else if (response.status === 403) {
+                        alert('No tienes permiso para eliminar este comentario.');
+                    } else if (response.status === 404) {
+                        alert('El comentario que intentas eliminar no fue encontrado.');
+                    } else {
+                        response.text().then(errorMessage => {
+                            console.error('Error al eliminar el comentario:', response.status, response.statusText, errorMessage);
+                            alert(`Error al eliminar el comentario: ${errorMessage || 'Inténtalo de nuevo.'}`);
+                        }).catch(() => {
+                            console.error('Error al eliminar el comentario:', response.status, response.statusText);
+                            alert('Error al eliminar el comentario. Inténtalo de nuevo.');
+                        });
+                        throw new Error('Error al eliminar el comentario.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error de red o procesamiento:', error);
+                    alert('Ocurrió un error inesperado. Por favor, inténtalo de nuevo.');
+                });
+            }
+        }
+            } // Fin de handleComentariosDivClick
+
+            function enviarComentario() {
+                var mensaje = document.getElementById('mensajeNuevoComentario').value;
+                var tipoEntidad = "Juego"; // Estos ya son globales para la sección
+                var entidadId = @Model.Id;
+                var mensajeRespuesta = document.getElementById('mensajeRespuestaComentario');
+                var juegoId = entidadId;
+
+                if (mensaje.trim() === "") {
+                    mensajeRespuesta.innerHTML = '<div class="alert alert-warning">Por favor, escribe un comentario.</div>';
+                    return;
+                }
+
+                const antiForgeryToken = getAntiForgeryToken(); // <-- ¡Y aquí!
+                if (!antiForgeryToken) {
+                    alert('Error de seguridad: No se pudo obtener el token de verificación.');
+                    return;
+                }
+
+                fetch('/Comentario/CrearComentario', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': antiForgeryToken // <-- ¡Y aquí!
+                    },
+                    body: `tipoEntidad=${tipoEntidad}&entidadId=${entidadId}&mensaje=${encodeURIComponent(mensaje)}&comentarioPadreId=&juegoId=${juegoId}`
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.text();
+                    } else {
+                        console.error('Error al enviar el comentario:', response.status, response.statusText);
+                        mensajeRespuesta.innerHTML = '<div class="alert alert-danger">Error al enviar el comentario. Inténtalo de nuevo.</div>';
+                        throw new Error('Error al enviar el comentario.');
+                    }
+                })
+                .then(data => {
+                    var comentariosContainer = comentariosDiv.querySelector('.card-body ul'); // Asumo que .card-body ul es donde quieres insertar
+                    if (!comentariosContainer) {
+                        console.error("No se encontró el contenedor de comentarios para añadir el nuevo comentario.");
+                        // Podrías intentar recargar toda la sección si no se encuentra el contenedor
+                        // comentariosDiv.innerHTML = data; // O volver a cargar fetch(`/Comentario/MostrarComentarios...`)
+                        // inicializarEventListeners();
+                        return;
+                    }
+                    var nuevoComentarioLi = document.createElement('li');
+                    nuevoComentarioLi.classList.add('media', 'mb-3', 'list-unstyled');
+                    nuevoComentarioLi.innerHTML = data;
+                    comentariosContainer.insertBefore(nuevoComentarioLi, comentariosContainer.firstChild);
+
+                    document.getElementById('mensajeNuevoComentario').value = "";
+                    mensajeRespuesta.innerHTML = '<div class="alert alert-success">Comentario enviado.</div>';
+                    setTimeout(() => {
+                        mensajeRespuesta.innerHTML = "";
+                    }, 3000);
+
+                    // Si el nuevo comentario tiene botones que necesitan listeners, re-inicialízalos
+                    inicializarEventListeners();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
+
+            // Cargar los comentarios iniciales
             fetch(`/Comentario/MostrarComentarios?tipoEntidad=${tipoEntidad}&entidadId=${entidadId}`)
                 .then(response => {
                     if (!response.ok) {
@@ -62,167 +318,7 @@
                 })
                 .then(data => {
                     comentariosDiv.innerHTML = data;
-
-                    // Delegación de eventos para los botones dentro de la sección de comentarios
-                    comentariosDiv.addEventListener('click', function (event) {
-                        if (event.target.classList.contains('btn-responder')) {
-                            const comentarioId = event.target.dataset.comentarioId;
-                            const respuestaForm = document.getElementById(`respuesta-form-${comentarioId}`);
-                            if (respuestaForm) {
-                                respuestaForm.classList.remove('d-none');
-                            }
-                        }
-
-                        if (event.target.classList.contains('btn-cancelar-respuesta')) {
-                            const respuestaForm = event.target.closest('div[id^="respuesta-form-"]');
-                            if (respuestaForm) {
-                                respuestaForm.classList.add('d-none');
-                                const mensajeRespuestaDiv = respuestaForm.querySelector('[id^="mensaje-respuesta-"]');
-                                if (mensajeRespuestaDiv) {
-                                    mensajeRespuestaDiv.innerHTML = '';
-                                }
-                                const textarea = respuestaForm.querySelector('.mensaje-respuesta');
-                                if (textarea) {
-                                    textarea.value = '';
-                                }
-                            }
-                        }
-
-                        if (event.target.classList.contains('btn-enviar-respuesta')) {
-                            const padreId = event.target.dataset.padreId;
-                            const respuestaForm = event.target.closest('div[id^="respuesta-form-"]');
-                            const mensajeTextarea = respuestaForm.querySelector('.mensaje-respuesta');
-                            const mensajeRespuestaDiv = respuestaForm.querySelector('[id^="mensaje-respuesta-"]');
-                            const tipoEntidad = document.getElementById('tipoEntidad').value;
-                            const entidadId = document.getElementById('entidadId').value;
-                            const mensaje = mensajeTextarea.value.trim();
-                            const juegoId = document.getElementById('entidadId').value;
-
-                            if (mensaje === "") {
-                                mensajeRespuestaDiv.innerHTML = '<div class="alert alert-warning">Por favor, escribe tu respuesta.</div>';
-                                return;
-                            }
-
-                            fetch('/Comentario/CrearComentario', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/x-www-form-urlencoded',
-                                    'RequestVerificationToken': '@Html.AntiForgeryToken()'
-                                },
-                                body: `tipoEntidad=${tipoEntidad}&entidadId=${entidadId}&mensaje=${encodeURIComponent(mensaje)}&comentarioPadreId=${padreId}&juegoId=${juegoId}`
-                            })
-                            .then(response => {
-                                if (response.ok) {
-                                    return response.text(); // Esperamos el HTML del nuevo comentario
-                                } else {
-                                    console.error('Error al enviar la respuesta:', response.status, response.statusText);
-                                    mensajeRespuestaDiv.innerHTML = '<div class="alert alert-danger">Error al enviar la respuesta. Inténtalo de nuevo.</div>';
-                                    throw new Error('Error al enviar la respuesta.');
-                                }
-                            })
-                            .then(data => {
-                                // Insertar la nueva respuesta debajo del comentario padre
-                                const comentarioPadre = event.target.closest('.media'); // Encontrar el comentario padre
-                                const respuestasContainer = comentarioPadre.querySelector('.list-unstyled');
-                                if (respuestasContainer) {
-                                    const nuevaRespuestaLi = document.createElement('li');
-                                    nuevaRespuestaLi.classList.add('media', 'mb-3', 'list-unstyled', 'ml-5'); // Añade clases para el estilo
-                                    nuevaRespuestaLi.innerHTML = data;
-                                    respuestasContainer.appendChild(nuevaRespuestaLi);
-                                } else {
-                                    const nuevaListaRespuestas = document.createElement('ul');
-                                    nuevaListaRespuestas.classList.add('list-unstyled', 'ml-5');
-                                    const nuevaRespuestaLi = document.createElement('li');
-                                    nuevaRespuestaLi.classList.add('media', 'mb-3', 'list-unstyled'); // Añade clases para el estilo
-                                    nuevaRespuestaLi.innerHTML = data;
-                                    nuevaListaRespuestas.appendChild(nuevaRespuestaLi);
-                                    comentarioPadre.querySelector('.media-body').appendChild(nuevaListaRespuestas);
-                                }
-
-                                // Limpiar el textarea y ocultar el formulario de respuesta
-                                const respuestaFormulario = event.target.closest('div[id^="respuesta-form-"]');
-                                const mensajeInput = respuestaFormulario.querySelector('.mensaje-respuesta');
-                                const mensajeResultado = respuestaFormulario.querySelector('[id^="mensaje-respuesta-"]');
-                                mensajeInput.value = "";
-                                respuestaFormulario.classList.add('d-none');
-                                mensajeResultado.innerHTML = '<div class="alert alert-success">Respuesta enviada.</div>';
-                                setTimeout(() => {
-                                    mensajeResultado.innerHTML = "";
-                                }, 3000);
-                            })
-                            .catch(error => {
-                                console.error('Error:', error);
-                            });
-                        }
-
-                        if (event.target.classList.contains('btn-mostrar-respuestas')) {
-                            const comentarioId = event.target.dataset.comentarioId;
-                            const respuestasContainer = document.getElementById(`respuestas-de-${comentarioId}`);
-                            if (respuestasContainer) {
-                                respuestasContainer.classList.toggle('d-none');
-                                event.target.textContent = respuestasContainer.classList.contains('d-none')
-                                    ? `Ver ${respuestasContainer.querySelectorAll('li.media').length} respuestas`
-                                    : `Ocultar respuestas`;
-                            }
-                        }
-                    });
-
-                    // Adjuntar event listener para el botón de nuevo comentario (si no lo tenías delegado)
-                    var enviarBtnNuevoComentario = comentariosDiv.querySelector('#formNuevoComentario button[type="button"]');
-                    if (enviarBtnNuevoComentario) {
-                        enviarBtnNuevoComentario.addEventListener('click', enviarComentario);
-                    } else {
-                        console.error('No se encontró el botón de enviar nuevo comentario después de la carga.');
-                    }
-
-                    function enviarComentario() {
-                        var mensaje = document.getElementById('mensajeNuevoComentario').value;
-                        var tipoEntidad = document.getElementById('tipoEntidad').value;
-                        var entidadId = document.getElementById('entidadId').value;
-                        var mensajeRespuesta = document.getElementById('mensajeRespuestaComentario');
-                        var juegoId = document.getElementById('entidadId').value; // Obtén el Id del juego
-
-                        if (mensaje.trim() === "") {
-                            mensajeRespuesta.innerHTML = '<div class="alert alert-warning">Por favor, escribe un comentario.</div>';
-                            return;
-                        }
-
-                        fetch('/Comentario/CrearComentario', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded',
-                                'RequestVerificationToken': '@Html.AntiForgeryToken()'
-                            },
-                            body: `tipoEntidad=${tipoEntidad}&entidadId=${entidadId}&mensaje=${encodeURIComponent(mensaje)}&comentarioPadreId=&juegoId=${juegoId}`
-                        })
-                        .then(response => {
-                            if (response.ok) {
-                                return response.text(); // Esperamos el HTML del nuevo comentario
-                            } else {
-                                console.error('Error al enviar el comentario:', response.status, response.statusText);
-                                mensajeRespuesta.innerHTML = '<div class="alert alert-danger">Error al enviar el comentario. Inténtalo de nuevo.</div>';
-                                throw new Error('Error al enviar el comentario.');
-                            }
-                        })
-                        .then(data => {
-                            // Insertar el nuevo comentario al principio de la lista
-                            var comentariosContainer = document.querySelector('.card-body');
-                            var nuevoComentarioDiv = document.createElement('li');
-                            nuevoComentarioDiv.classList.add('media', 'mb-3', 'list-unstyled'); // Añade clases para el estilo
-                            nuevoComentarioDiv.innerHTML = data;
-                            comentariosContainer.insertBefore(nuevoComentarioDiv, comentariosContainer.firstChild);
-
-                            // Limpiar el textarea y mostrar un mensaje de éxito
-                            document.getElementById('mensajeNuevoComentario').value = "";
-                            mensajeRespuesta.innerHTML = '<div class="alert alert-success">Comentario enviado.</div>';
-                            setTimeout(() => {
-                                mensajeRespuesta.innerHTML = "";
-                            }, 3000);
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                        });
-                    }
+                    inicializarEventListeners(); // Inicializar después de cargar el HTML de comentarios
                 })
                 .catch(error => {
                     console.error('Error de red al cargar los comentarios:', error);

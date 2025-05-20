@@ -12,8 +12,8 @@ using TFG.Data;
 namespace TFG.Migrations
 {
     [DbContext(typeof(TFGContext))]
-    [Migration("20250518210348_cajacomentario")]
-    partial class cajacomentario
+    [Migration("20250520114624_pruebarearranque")]
+    partial class pruebarearranque
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,51 @@ namespace TFG.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("TFG.Models.Comentario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ComentarioPadreId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EntidadId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("JuegoId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Mensaje")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("TipoEntidad")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComentarioPadreId");
+
+                    b.HasIndex("JuegoId");
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("Comentario", (string)null);
+                });
 
             modelBuilder.Entity("TFG.Models.Item", b =>
                 {
@@ -340,13 +385,38 @@ namespace TFG.Migrations
                     b.ToTable("Administradores", (string)null);
                 });
 
-            modelBuilder.Entity("TFG.Models.Item", b =>
+            modelBuilder.Entity("TFG.Models.Comentario", b =>
                 {
-                    b.HasOne("TFG.Models.Juego", null)
-                        .WithMany("Item")
+                    b.HasOne("TFG.Models.Comentario", "ComentarioPadre")
+                        .WithMany("Respuestas")
+                        .HasForeignKey("ComentarioPadreId");
+
+                    b.HasOne("TFG.Models.Juego", "Juego")
+                        .WithMany()
                         .HasForeignKey("JuegoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("TFG.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId");
+
+                    b.Navigation("ComentarioPadre");
+
+                    b.Navigation("Juego");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("TFG.Models.Item", b =>
+                {
+                    b.HasOne("TFG.Models.Juego", "Juego")
+                        .WithMany("Items")
+                        .HasForeignKey("JuegoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Juego");
                 });
 
             modelBuilder.Entity("TFG.Models.LoginExterno", b =>
@@ -360,20 +430,24 @@ namespace TFG.Migrations
 
             modelBuilder.Entity("TFG.Models.Mision", b =>
                 {
-                    b.HasOne("TFG.Models.Juego", null)
-                        .WithMany("Mision")
+                    b.HasOne("TFG.Models.Juego", "Juego")
+                        .WithMany("Misiones")
                         .HasForeignKey("JuegoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Juego");
                 });
 
             modelBuilder.Entity("TFG.Models.Truco", b =>
                 {
-                    b.HasOne("TFG.Models.Juego", null)
+                    b.HasOne("TFG.Models.Juego", "Juego")
                         .WithOne("Truco")
                         .HasForeignKey("TFG.Models.Truco", "JuegoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Juego");
                 });
 
             modelBuilder.Entity("TFG.Models.Usuario", b =>
@@ -432,6 +506,11 @@ namespace TFG.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("TFG.Models.Comentario", b =>
+                {
+                    b.Navigation("Respuestas");
+                });
+
             modelBuilder.Entity("TFG.Models.Item", b =>
                 {
                     b.Navigation("UsuariosQueLoCompletaron");
@@ -439,9 +518,9 @@ namespace TFG.Migrations
 
             modelBuilder.Entity("TFG.Models.Juego", b =>
                 {
-                    b.Navigation("Item");
+                    b.Navigation("Items");
 
-                    b.Navigation("Mision");
+                    b.Navigation("Misiones");
 
                     b.Navigation("Truco");
                 });

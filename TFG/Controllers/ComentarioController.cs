@@ -123,8 +123,9 @@ public class ComentarioController : Controller
         //var userId = userManager?.GetUserId(User);
         var userId = -1;
         var usuario = await userManager.GetUserAsync(User);
-        if (usuario != null) {
-            userId=usuario.Id;
+        if (usuario != null)
+        {
+            userId = usuario.Id;
         }
 
         var nuevoComentario = new ComentarioViewModel
@@ -137,7 +138,7 @@ public class ComentarioController : Controller
             FechaCreacion = DateTime.UtcNow,
             UserId = userId,
             NombreUsuario = usuario.NombreUsuario
-            
+
         };
 
         bool resultado = await _comentarioService.GuardarComentario(nuevoComentario);
@@ -153,6 +154,58 @@ public class ComentarioController : Controller
         else
         {
             return StatusCode(500, "Error al guardar el comentario.");
+        }
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> EliminarComentario(int comentarioId)
+    {
+        var comentario = await _comentarioService.ObtenerComentariosPorId(comentarioId);
+
+        if (comentario == null)
+        {
+            // Usa NotFound() para un 404 si el recurso no existe.
+            // Redirigir a "Mensaje" no es ideal para una llamada AJAX.
+            return NotFound();
+        }
+
+        var usuarioActual = await userManager.GetUserAsync(User);
+
+        if (usuarioActual == null) // Aunque [Authorize] debería manejar esto, es buena práctica.
+        {
+            return Forbid(); // 403 Forbidden
+        }
+
+        var esAdmin = await userManager.IsInRoleAsync(usuarioActual, "Admin");
+
+        // Verifica si el usuario actual es el creador o es administrador
+        if (comentario.NombreUsuario == usuarioActual.NombreUsuario || esAdmin) // Usa usuarioActual.UserName para comparar con el nombre del usuario logueado
+        {
+            try
+            {
+                if (await _comentarioService.EliminarComentario(comentario.Id))
+                {
+                    // *** CAMBIO AQUÍ: Devuelve un simple OK (status 200) ***
+                    return Ok();
+                }
+                else
+                {
+                    // Si el servicio reporta un error interno, devuelve un 500
+                    return StatusCode(500, "La base de datos reportó un error al intentar eliminar el comentario.");
+                }
+            }
+            catch (Exception ex) // Captura excepciones para un mejor diagnóstico
+            {
+                _logger.LogError(ex, "Error al eliminar el comentario con ID {ComentarioId}", comentario.Id);
+                return StatusCode(500, "Ocurrió un error inesperado al eliminar el comentario.");
+            }
+        }
+        else
+        {
+            // Si no tiene permisos, devuelve un 403 Forbidden
+            return Forbid();
         }
     }
 

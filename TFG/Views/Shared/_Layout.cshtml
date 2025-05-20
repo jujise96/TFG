@@ -41,6 +41,10 @@
         </main>
     </div>
 
+    <form id="antiForgeryForm" style="display:none;">
+        @Html.AntiForgeryToken()
+    </form>
+
     <footer class="border-top footer text-muted">
         <div class="container">
             &copy; 2025 - GSY - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>

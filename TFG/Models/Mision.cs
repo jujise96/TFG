@@ -13,6 +13,7 @@ namespace TFG.Models
         public string IdElem { get; set; }
         [Required]
         public int JuegoId { get; set; }
+        public Juego Juego { get; set; }
 
         public string Nombre { get; set; }
         public string Descripcion { get; set; }
