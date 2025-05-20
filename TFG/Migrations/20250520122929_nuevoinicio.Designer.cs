@@ -12,8 +12,8 @@ using TFG.Data;
 namespace TFG.Migrations
 {
     [DbContext(typeof(TFGContext))]
-    [Migration("20250520114624_pruebarearranque")]
-    partial class pruebarearranque
+    [Migration("20250520122929_nuevoinicio")]
+    partial class nuevoinicio
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -62,8 +62,6 @@ namespace TFG.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ComentarioPadreId");
-
-                    b.HasIndex("JuegoId");
 
                     b.HasIndex("UsuarioId");
 
@@ -389,21 +387,14 @@ namespace TFG.Migrations
                 {
                     b.HasOne("TFG.Models.Comentario", "ComentarioPadre")
                         .WithMany("Respuestas")
-                        .HasForeignKey("ComentarioPadreId");
-
-                    b.HasOne("TFG.Models.Juego", "Juego")
-                        .WithMany()
-                        .HasForeignKey("JuegoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ComentarioPadreId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("TFG.Models.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId");
 
                     b.Navigation("ComentarioPadre");
-
-                    b.Navigation("Juego");
 
                     b.Navigation("Usuario");
                 });

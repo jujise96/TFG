@@ -55,6 +55,10 @@ namespace TFG.Repositories
                 // Eliminar items relacionados
                 await connection.ExecuteAsync("DELETE FROM Items WHERE JuegoId = @Id", new { Id = idElemento });
 
+                // Eliminar comentarios relacionados
+                await connection.ExecuteAsync("DELETE FROM Comentario WHERE JuegoId = @Id", new { Id = idElemento });
+
+
                 // Finalmente, eliminar el juego
                 await connection.ExecuteAsync("DELETE FROM Juego WHERE Id = @Id", new { Id = idElemento });
             }

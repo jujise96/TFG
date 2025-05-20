@@ -92,8 +92,48 @@ namespace TFG.Repositories
         public async Task<bool> EliminarComentario(int id)
         {
             using var connection = new SqlConnection(connectionString);
-            var rowsAffected = await connection.ExecuteAsync("DELETE FROM Comentario WHERE Id = @Id", new { Id = id });
-            return rowsAffected > 0;
+            await connection.OpenAsync(); // Es bueno asegurarse de que la conexión está abierta
+
+            // Iniciar una transacción para asegurar que todas las eliminaciones son atómicas
+            using var transaction = connection.BeginTransaction();
+            try
+            {
+                // SQL Common Table Expression (CTE) para obtener todos los descendientes del comentario
+                // incluyendo el comentario original a eliminar.
+                var sql = @"
+                    WITH ComentariosDescendientes AS (
+                        SELECT Id
+                        FROM Comentario
+                        WHERE Id = @Id
+                        UNION ALL
+                        SELECT c.Id
+                        FROM Comentario c
+                        INNER JOIN ComentariosDescendientes cd ON c.ComentarioPadreId = cd.Id
+                    )
+                    DELETE FROM Comentario
+                    WHERE Id IN (SELECT Id FROM ComentariosDescendientes);";
+
+                var rowsAffected = await connection.ExecuteAsync(sql, new { Id = id }, transaction);
+
+                // Si todo fue bien, confirma la transacción
+                transaction.Commit();
+                return rowsAffected > 0;
+            }
+            catch (SqlException ex)
+            {
+                // Si algo falla, revierte la transacción
+                transaction.Rollback();
+                // Deberías usar un logger aquí para un manejo de errores más robusto
+                Console.WriteLine($"Error de SQL al eliminar el comentario y sus descendientes: {ex.Message}");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                // Captura otras posibles excepciones y revierte
+                transaction.Rollback();
+                Console.WriteLine($"Error inesperado al eliminar el comentario y sus descendientes: {ex.Message}");
+                return false;
+            }
         }
     }
 }

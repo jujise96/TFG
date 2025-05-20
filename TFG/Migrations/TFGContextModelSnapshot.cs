@@ -60,8 +60,6 @@ namespace TFG.Migrations
 
                     b.HasIndex("ComentarioPadreId");
 
-                    b.HasIndex("JuegoId");
-
                     b.HasIndex("UsuarioId");
 
                     b.ToTable("Comentario", (string)null);
@@ -386,21 +384,14 @@ namespace TFG.Migrations
                 {
                     b.HasOne("TFG.Models.Comentario", "ComentarioPadre")
                         .WithMany("Respuestas")
-                        .HasForeignKey("ComentarioPadreId");
-
-                    b.HasOne("TFG.Models.Juego", "Juego")
-                        .WithMany()
-                        .HasForeignKey("JuegoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ComentarioPadreId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("TFG.Models.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId");
 
                     b.Navigation("ComentarioPadre");
-
-                    b.Navigation("Juego");
 
                     b.Navigation("Usuario");
                 });

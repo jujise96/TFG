@@ -30,8 +30,11 @@ namespace TFG.Data
             modelBuilder.Entity<Truco>().ToTable("Truco");
             modelBuilder.Entity<Comentario>().ToTable("Comentario"); // O el nombre que quieras para la tabla
 
-
-
+            modelBuilder.Entity<Comentario>()
+                .HasOne(c => c.ComentarioPadre)
+                .WithMany(c => c.Respuestas)
+                .HasForeignKey(c => c.ComentarioPadreId)
+                .OnDelete(DeleteBehavior.NoAction); // <--- CAMBIO AQUÍ
         }
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TFG.Migrations
 {
     /// <inheritdoc />
-    public partial class pruebarearranque : Migration
+    public partial class nuevoinicio : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -186,12 +186,6 @@ namespace TFG.Migrations
                         principalTable: "Comentario",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_Comentario_Juego_JuegoId",
-                        column: x => x.JuegoId,
-                        principalTable: "Juego",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
                         name: "FK_Comentario_Usuarios_UsuarioId",
                         column: x => x.UsuarioId,
                         principalTable: "Usuarios",
@@ -278,11 +272,6 @@ namespace TFG.Migrations
                 name: "IX_Comentario_ComentarioPadreId",
                 table: "Comentario",
                 column: "ComentarioPadreId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Comentario_JuegoId",
-                table: "Comentario",
-                column: "JuegoId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Comentario_UsuarioId",

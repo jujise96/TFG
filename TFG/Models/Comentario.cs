@@ -9,16 +9,13 @@ namespace TFG.Models
         public int Id { get; set; }
 
         [Required]
-        [ForeignKey("Juego")]
         public int JuegoId { get; set; }
-        public Juego Juego { get; set; }
 
         [Required]
         public TipoEntidad TipoEntidad { get; set; }
         [Required]
         public int EntidadId { get; set; }
-
-        [ForeignKey("ComentarioPadre")]
+        
         public int? ComentarioPadreId { get; set; }
         public Comentario ComentarioPadre { get; set; }
         public ICollection<Comentario> Respuestas { get; set; }
