@@ -1,34 +1,39 @@
 ﻿@model TFG.Models.ComentarioViewModel
 
-<li class="media mb-3 list-unstyled">
+<li class="media mb-3 list-unstyled comentario-individual"
+    data-comentario-id="@Model.Id"
+    data-tipo-entidad="@(ViewData["TipoEntidad"]?.ToString())"
+    data-entidad-id="@(ViewData["EntidadId"]?.ToString())">
     <div class="media-body">
         <h5 class="mt-0 mb-1">Usuario @Model.NombreUsuario - @Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</h5>
         <p>@Model.Mensaje</p>
         @if (User.Identity.IsAuthenticated)
         {
+            @* Asegúrate de que User.Identity.Name es el NombreUsuario correcto para la comparación *@
             @if (Model.NombreUsuario == User.Identity.Name || User.IsInRole("Admin"))
             {
                 <button class="btn btn-sm btn-danger btn-eliminar-comentario" data-comentario-id="@Model.Id">Eliminar</button>
             }
             <button class="btn btn-sm btn-outline-primary btn-responder" data-comentario-id="@Model.Id">Responder</button>
-            <div id="respuesta-form-@Model.Id" class="mt-2 d-none">
+            <div id="respuesta-form-@Model.Id" class="mt-2 d-none form-respuesta">
                 <div class="form-group">
-                    <textarea class="form-control mensaje-respuesta" rows="2" placeholder="Escribe tu respuesta aquí..."></textarea>
+                    <textarea class="form-control mensaje-respuesta-textarea" rows="2" placeholder="Escribe tu respuesta aquí..."></textarea>
                 </div>
-                <button class="btn btn-sm btn-primary btn-enviar-respuesta" data-padre-id="@Model.Id">Enviar respuesta</button>
+                <button class="btn btn-sm btn-primary btn-enviar-respuesta" data-comentario-padre-id="@Model.Id">Enviar respuesta</button>
                 <button class="btn btn-sm btn-secondary btn-cancelar-respuesta">Cancelar</button>
-                <div id="mensaje-respuesta-@Model.Id" class="mt-2"></div>
+                <div class="mensaje-respuesta-alerta mt-2"></div>
             </div>
         }
-        @if (Model.Respuestas.Any())
+        @if (Model.Respuestas is not null && Model.Respuestas.Any())
         {
             <button class="btn btn-sm btn-link btn-mostrar-respuestas" data-comentario-id="@Model.Id">
                 Ver @Model.Respuestas.Count() respuestas
             </button>
-            <ul id="respuestas-de-@Model.Id" class="ml-5 d-none">
+            <ul id="respuestas-de-@Model.Id" class="ml-5 d-none lista-respuestas">
                 @foreach (var respuesta in Model.Respuestas)
                 {
-                    @await Html.PartialAsync("CajaComentarios/_ComentarioIndividual", respuesta)
+                    @* Simplemente pasa el ViewData existente al parcial anidado *@
+                    @await Html.PartialAsync("CajaComentarios/_ComentarioIndividual", respuesta, ViewData)
                 }
             </ul>
         }

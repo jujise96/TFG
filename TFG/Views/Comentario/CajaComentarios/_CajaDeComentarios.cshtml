@@ -2,36 +2,36 @@
 
 <div class="card mb-3">
     <div class="card-header">
-        <i class="fas fa-comments"></i> Comentarios (@Model.TotalComentarios)
+        <i class="fas fa-comments"></i> Comentarios (<span id="total-comentarios-@Model.TipoEntidad-@Model.EntidadId">@Model.TotalComentarios</span>)
     </div>
-    <div class="card-body">
-        @if (Model.Comentarios is not null)
+    <div class="card-body" id="lista-comentarios-@Model.TipoEntidad-@Model.EntidadId">
+        @if (Model.Comentarios is not null && Model.Comentarios.Any())
         {
-            @if (Model.Comentarios.Any())
+            @foreach (var comentario in Model.Comentarios)
             {
-                @foreach (var comentario in Model.Comentarios)
-                {
-                    @await Html.PartialAsync("CajaComentarios/_ComentarioIndividual", comentario)
-                }
+                @* AQUI: Pasa el ViewData explícitamente a CADA ComentarioIndividual *@
+                @await Html.PartialAsync("CajaComentarios/_ComentarioIndividual", comentario, new ViewDataDictionary(ViewData)
+        {
+        { "TipoEntidad", Model.TipoEntidad },
+        { "EntidadId", Model.EntidadId }
+        })
             }
-            else
-            {
-                <p>No hay comentarios aún. ¡Sé el primero en comentar!</p>
-            }
+        }
+        else
+        {
+            <p>No hay comentarios aún. ¡Sé el primero en comentar!</p>
         }
     </div>
     <div class="card-footer small text-muted">
         @if (User.Identity.IsAuthenticated)
         {
             <h4>Dejar un comentario</h4>
-            <form id="formNuevoComentario">
+            <form class="form-nuevo-comentario" data-tipo-entidad="@Model.TipoEntidad" data-entidad-id="@Model.EntidadId">
                 <div class="form-group">
-                    <textarea class="form-control" id="mensajeNuevoComentario" rows="3" placeholder="Escribe tu comentario aquí..."></textarea>
+                    <textarea class="form-control mensaje-nuevo-comentario" rows="3" placeholder="Escribe tu comentario aquí..."></textarea>
                 </div>
-                <input type="hidden" id="tipoEntidad" value="@Model.TipoEntidad" />
-                <input type="hidden" id="entidadId" value="@Model.EntidadId" />
-                <div id="mensajeRespuestaComentario" class="mt-2"></div>
-                <button type="button" class="btn btn-primary">Enviar comentario</button>
+                <div class="mensaje-respuesta-comentario mt-2"></div>
+                <button type="button" class="btn btn-primary btn-enviar-nuevo-comentario">Enviar comentario</button>
             </form>
         }
         else
