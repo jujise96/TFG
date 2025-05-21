@@ -1,7 +1,7 @@
 ﻿@model List<ElementoUsuarioViewModel>
 
 @{
-    ViewData["Title"] = "Pagina de inicio";
+    ViewData["Title"] = "Página de inicio";
     var tipo = ViewBag.tipoelemento as string;
     var idJuego = ViewBag.idJuego;
     if (Model != null && Model.Any())
@@ -10,47 +10,72 @@
     }
 }
 
-<div class="text-center">
-    <h1 class="display-4">Guia de supervivencia del yermo</h1>
-    <div>
+<div class="text-center card">
+    <h1 class="display-4">Guía de Supervivencia del Yermo</h1>
+
+    <div class="mb-3">
         @if ((tipo == "Mision" || tipo == "Item") && User.Identity.IsAuthenticated)
         {
-            <button class="btn btn-outline-primary btn-sm filter-button active" data-filter="todos">Todos</button>
-            <button class="btn btn-outline-success btn-sm filter-button" data-filter="completados">Completados</button>
-            <button class="btn btn-outline-danger btn-sm filter-button" data-filter="no-completados">No Completados</button>
+            <button class="btn btn-outline-primary btn-sm m-1 filter-button active" data-filter="todos">Todos</button>
+            <button class="btn btn-outline-success btn-sm m-1 filter-button" data-filter="completados">Completados</button>
+            <button class="btn btn-outline-danger btn-sm m-1 filter-button" data-filter="no-completados">No Completados</button>
         }
         @if (User.IsInRole("Admin"))
         {
-            <form method="post" asp-controller="Home" asp-action="CrearElemento" asp-route-tipo="@tipo" asp-route-idJuego="@idJuego">
-                <button type="submit" class="btn btn-outline-secondary btn-sm">Crear nuevo @tipo</button>
+            <form method="post" class="d-inline" asp-controller="Home" asp-action="CrearElemento" asp-route-tipo="@tipo" asp-route-idJuego="@idJuego">
+                <button type="submit" class="btn btn-outline-secondary m-1 btn-sm">Crear nuevo @tipo</button>
             </form>
         }
     </div>
+
     @if (Model != null && Model.Any())
     {
-        <ul class="list-unstyled">
-            @foreach (var item in Model)
-            {
-                <li class="elemento-lista" data-completada="@item.completada.ToString().ToLower()">
-                    <a asp-controller="Home" asp-action="@tipo" asp-route-id="@item.Id" asp-route-idJuego="@item.idJuego">
-                        @item.Nombre
-                    </a>
-                    @if ((tipo == "Mision" || tipo == "Item") && User.Identity.IsAuthenticated)
+        <div class="table-responsive">
+            <table class="table table-striped table-hover mt-3">
+                <thead>
+                    <tr>
+                        <th scope="col">Nombre</th>
+                        @if ((tipo == "Mision" || tipo == "Item") && User.Identity.IsAuthenticated)
+                        {
+                            <th scope="col">Completada</th>
+                        }
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <th scope="col">Acciones</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
                     {
-                        <input type="checkbox" class="checkbox-completed" id="marcarcompletada_@item.Id" name="seleccionado_@item.Id" @(item.completada ? "checked" : "") />
+                        <tr class="elemento-lista" data-completada="@item.completada.ToString().ToLower()">
+                            <td>
+                                <a asp-controller="Home" asp-action="@tipo" asp-route-id="@item.Id" asp-route-idJuego="@item.idJuego">
+                                    @item.Nombre
+                                </a>
+                            </td>
+                            @if ((tipo == "Mision" || tipo == "Item") && User.Identity.IsAuthenticated)
+                            {
+                                <td>
+                                    <input type="checkbox" class="checkbox-completed" id="marcarcompletada_@item.Id" name="seleccionado_@item.Id" @(item.completada ? "checked" : "") />
+                                </td>
+                            }
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <td>
+                                    <form method="post" asp-controller="Home" asp-action="eliminarelemento" class="d-inline">
+                                        <input type="hidden" name="tipo" value="@tipo" />
+                                        <input type="hidden" name="idelemento" value="@item.Id" />
+                                        <input type="hidden" name="idjuego" value="@item.idJuego" />
+                                        <button type="submit" class="btn btn-outline-danger btn-sm m-0">Eliminar @tipo</button>
+                                    </form>
+                                </td>
+                            }
+                        </tr>
                     }
-                    @if (User.IsInRole("Admin"))
-                    {
-                        <form method="post" asp-controller="Home" asp-action="eliminarelemento" style="display: inline;">
-                            <input type="hidden" name="tipo" value="@tipo" />
-                            <input type="hidden" name="idelemento" value="@item.Id" />
-                            <input type="hidden" name="idjuego" value="@item.idJuego" />
-                            <button type="submit" class="btn btn-outline-danger btn-sm">Eliminar @tipo</button>
-                        </form>
-                    }
-                </li>
-            }
-        </ul>
+                </tbody>
+            </table>
+        </div>
     }
     else
     {
@@ -64,6 +89,7 @@
         const tipo = '@tipo';
         let marcarcompletada = document.querySelectorAll('.checkbox-completed');
         const filterButtons = document.querySelectorAll('.filter-button');
+        // Aquí es importante: Ahora `listaElementos` apuntará a las filas de la tabla (<tr>)
         const listaElementos = document.querySelectorAll('.elemento-lista');
         let filtroActivo = 'todos'; // Variable para almacenar el filtro activo
 
@@ -71,13 +97,13 @@
         function aplicarFiltro() {
             listaElementos.forEach(item => {
                 if (filtroActivo === 'todos') {
-                    item.style.display = 'block';
+                    item.style.display = 'table-row'; // Para mostrar la fila de la tabla
                 } else if (filtroActivo === 'completados') {
                     const completada = item.getAttribute('data-completada');
-                    item.style.display = completada === 'true' ? 'block' : 'none';
+                    item.style.display = completada === 'true' ? 'table-row' : 'none';
                 } else if (filtroActivo === 'no-completados') {
                     const completada = item.getAttribute('data-completada');
-                    item.style.display = completada === 'false' ? 'block' : 'none';
+                    item.style.display = completada === 'false' ? 'table-row' : 'none';
                 }
             });
         }
@@ -86,15 +112,18 @@
             checkbox.addEventListener('change', async function () {
                 const id = this.id.split('_')[1];
                 const completada = this.checked;
-                const listItem = this.closest('.elemento-lista');
+                const listItem = this.closest('.elemento-lista'); // Sigue siendo `closest` a la fila (<tr>)
                 if (listItem) {
                     listItem.setAttribute('data-completada', completada.toString());
                 }
+
+                const antiForgeryToken = document.querySelector('#antiForgeryForm input[name="__RequestVerificationToken"]').value;
 
                 const respuesta = await fetch(urlaccion, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'RequestVerificationToken': antiForgeryToken // Envía el token
                     },
                     body: JSON.stringify({
                         id: id,

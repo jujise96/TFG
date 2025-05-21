@@ -11,7 +11,7 @@
         @if (User.IsInRole("Admin"))
         {
             <form method="post" asp-controller="Home" asp-action="ModificarElemento" asp-route-tipo="Mision" asp-route-idelemento=@Model.Id>
-                <button type="submit" class="btn btn-outline-secondary btn-sm">Modificar Mision: @Model.Nombre</button>
+                <button type="submit" class="btn btn-outline-secondary btn-sm mt-2 mb-2 w-50">Modificar Mision: @Model.Nombre</button>
             </form>
         }
     }
@@ -26,7 +26,7 @@
                     <input type="hidden" name="juegoId" value="@Model.idJuego" />
                     <input type="hidden" name="misionId" value="@Model.Id" />
                     <input type="hidden" name="check" value=true />
-                    <button type="submit" class="btn btn-danger">Desmarcar como completada</button>
+                    <button type="submit" class="btn btn-danger btn-sm mt-2 mb-2 w-50">Desmarcar como completada</button>
                 </form>                
             }
             else if (!(@Model.Completada))
@@ -35,7 +35,7 @@
                     <input type="hidden" name="juegoId" value="@Model.idJuego" />
                     <input type="hidden" name="misionId" value="@Model.Id" />
                     <input type="hidden" name="check" value=false />
-                    <button type="submit" class="btn btn-success">Marcar como completada</button>
+                    <button type="submit" class="btn btn-success btn-sm mt-2 mb-2 w-50">Marcar como completada</button>
                 </form>
             }
         </form>
