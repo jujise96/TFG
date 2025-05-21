@@ -103,6 +103,8 @@ namespace TFG.Models
         [StringLength(100)]
         [Display(Name = "Código Plus de Google: https://maps.google.com/pluscodes/")]
         public string GooglePlusCode { get; set; }
+
+        public ICollection<LoginExterno> loginexternos { get; set; }
     }
 
     public class ElementoUsuarioViewModel()

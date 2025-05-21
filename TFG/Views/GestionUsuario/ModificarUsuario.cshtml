@@ -2,6 +2,8 @@
 
 @{
     ViewData["Title"] = "Editar Perfil";
+    bool tienemicrosft = Model.loginexternos?.Any(loginmicrosoft => loginmicrosoft.loginprovider=="Microsoft")??false;
+    bool tienegoogle = Model.loginexternos?.Any(logingoogle => logingoogle.loginprovider == "Google") ?? false;
 }
 
 <h2>Editar Perfil - @User.Identity.Name</h2>
@@ -38,7 +40,7 @@
         <input asp-for="Correo" class="form-control" />
         <span asp-validation-for="Correo" class="text-danger"></span>
     </div>
-      
+
     <div class="form-group">
         <label asp-for="Telefono"></label>
         <input asp-for="Telefono" class="form-control" />
@@ -68,6 +70,25 @@
         <a class="btn btn-success mt-3 mb-3" asp-action="PassForgoten">Cambiar contraseña</a>
         @*<input asp-for="Contrasena" type="password" class="form-control" placeholder="••••••••" />
         <span asp-validation-for="Contrasena" class="text-danger"></span>*@
+    </div>
+
+    <div class="d-flex gap-3 mb-3 align-items-center">
+    @if (!tienemicrosft)
+    {
+        <a class="btn btn-success d-flex" asp-action="loginExterno" asp-route-proveedor="Microsoft">Vincular cuenta con Microsoft</a>
+    }
+    else if(tienemicrosft)
+    {
+        <span class=" badge fs-6 bg-dark-subtle">Cuenta Microsoft vinculada</span>
+    }
+    @if (!tienegoogle)
+    {
+        <a class="btn btn-success" asp-action="loginExterno" asp-route-proveedor="Google">Vincular cuenta con Google</a>
+    }
+    else if(tienegoogle)
+    {
+        <span class=" badge fs-6 bg-dark-subtle" style="min-height:33px;">Cuenta Google vinculada</span>
+    }
     </div>
 
     <button type="submit" class="btn btn-primary">Guardar</button>

@@ -347,7 +347,7 @@ public class HomeController : Controller
     }
 
 
-    private async Task<bool> EliminarImagenFisica(string? imageUrl)
+    private bool EliminarImagenFisica(string? imageUrl)
     {
         if (string.IsNullOrEmpty(imageUrl)) return true; // No hay imagen o es nula, no hay nada que eliminar
 
@@ -433,7 +433,7 @@ public class HomeController : Controller
             {
                 foreach (var imageUrl in todasLasImagenesHijas)
                 {
-                    await EliminarImagenFisica(imageUrl);
+                    EliminarImagenFisica(imageUrl);
                 }
                 if (urlJuego != null)
                 {

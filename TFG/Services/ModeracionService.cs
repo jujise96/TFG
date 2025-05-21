@@ -40,7 +40,7 @@ namespace TFG.Services
 
             if (string.IsNullOrEmpty(apiKey))
             {
-                _logger.LogError("La clave de API de Google AI ('GoogleAIApiKey') no está configurada en appsettings.json. La moderación de IA no funcionará.");
+                _logger.LogError("La clave de API de Google AI ('GoogleAIApiKey') no está configurada en secrets.json. La moderación de IA no funcionará.");
                 // Es crucial lanzar una excepción o manejar este caso para evitar que la aplicación continúe sin una clave válida.
                 throw new InvalidOperationException("La clave de API de Google AI no está configurada.");
             }

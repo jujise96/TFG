@@ -6,6 +6,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using TFG.Models;
+using TFG.Repositories;
 using TFG.Services;
 
 namespace TFG.Controllers
@@ -15,11 +16,12 @@ namespace TFG.Controllers
         private readonly UserManager<Usuario> userManager;
         private readonly SignInManager<Usuario> signInManager;
         private readonly ILogger<GestionUsuarioController> logger;
+        private readonly IRepositorioLoginExterno repositorioLoginExterno;
         private readonly IMailService mailService;
         private readonly IMisionService misionService;
         private readonly IItemService itemService;
 
-        public GestionUsuarioController(UserManager<Usuario> userManager, SignInManager<Usuario> signInManager, ILogger<GestionUsuarioController> logger, IMailService mailService, IMisionService misionService, IItemService itemService)
+        public GestionUsuarioController(UserManager<Usuario> userManager, SignInManager<Usuario> signInManager, ILogger<GestionUsuarioController> logger, IMailService mailService, IMisionService misionService, IItemService itemService, IRepositorioLoginExterno repositorioLoginExterno)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
@@ -27,6 +29,7 @@ namespace TFG.Controllers
             this.mailService = mailService;
             this.misionService = misionService;
             this.itemService = itemService;
+            this.repositorioLoginExterno = repositorioLoginExterno;
         }
 
         private string ObtenerClaim(ClaimsPrincipal principal, string tipoClaim)
@@ -71,7 +74,7 @@ namespace TFG.Controllers
                         usuario.mailusername = usuarioaux.Result.NombreUsuario;
                     }
                 }
-                var result = await signInManager.PasswordSignInAsync(usuario.mailusername, usuario.Contrasena, isPersistent: false, lockoutOnFailure: false);
+                var result = await signInManager.PasswordSignInAsync(usuario.mailusername, usuario.Contrasena, isPersistent: true, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
                     return RedirectToAction("Index", "Home");
@@ -127,7 +130,7 @@ namespace TFG.Controllers
                                 return View(VMusuario);
                             }
                         }*/
-                        await signInManager.SignInAsync(usuario, isPersistent: false);
+                        await signInManager.SignInAsync(usuario, isPersistent: true);
                     return RedirectToAction("Index", "Home");
                 }
                 else
@@ -174,7 +177,8 @@ namespace TFG.Controllers
                     Telefono = usuario.Telefono,
                     Pais = usuario.Pais,
                     F_Nacimiento = usuario.F_Nacimiento,
-                    GooglePlusCode = usuario.GooglePlusCode
+                    GooglePlusCode = usuario.GooglePlusCode,
+                    loginexternos = (ICollection<LoginExterno>)await repositorioLoginExterno.ListadoLogins(usuario.Id)
                 };
 
                 return View(model);
@@ -307,6 +311,7 @@ namespace TFG.Controllers
                 return RedirectToAction("InicioSesion", routeValues: new { mensaje });
             }
 
+            
             var resultadoLoginExterno = await signInManager.ExternalLoginSignInAsync(info.LoginProvider,
                 info.ProviderKey, isPersistent: true, bypassTwoFactor: true);
 
@@ -353,6 +358,23 @@ namespace TFG.Controllers
                 //F_CreacionUsuario = DateTime.Now // No se puede obtener la fecha de nacimiento del proveedor
             };
 
+            //comprobamos si el correo ya esta registrado
+            var usuarioExistente = await userManager.FindByEmailAsync(registroVM.Correo);
+            if (usuarioExistente != null)
+            {
+                registroVM.Id = usuarioExistente.Id;
+                var resultadoinsercionlogin = await userManager.AddLoginAsync(usuarioExistente, info);
+                if(resultadoinsercionlogin.Succeeded)
+                {
+                    await signInManager.SignInAsync(usuarioExistente, isPersistent: true, info.LoginProvider);
+                    return LocalRedirect(urlRetorno);
+                }
+                else
+                {
+                    mensaje = "Error al añadir el login externo al usuario existente";
+                    return RedirectToAction("InicioSesion", routeValues: new { mensaje });
+                }
+            }
 
 
             /*//Guardamos temporalmente estos datos para a futuro guardarlos en el usuarioLoginExterno
