@@ -27,8 +27,8 @@ namespace TFG.Repositories
             using var connection = new SqlConnection(connectionString);
             // Verificar si el nombre de usuario ya existe TODO
             usuario.securityStamp = Guid.NewGuid().ToString();
-            var id = await connection.QueryFirstOrDefaultAsync<int>(@"INSERT INTO Usuarios ( securityStamp, NombreUsuario, Nombre, Apellido, Correo, Contrasena, Telefono, Pais, F_Nacimiento, GooglePlusCode ) 
-                                                                    VALUES (@securityStamp, @NombreUsuario, @Nombre, @Apellido, @Correo, @Contrasena, @Telefono, @Pais, @F_Nacimiento, @GooglePlusCode ); select SCOPE_IDENTITY()", usuario);
+            var id = await connection.QueryFirstOrDefaultAsync<int>(@"INSERT INTO Usuarios ( securityStamp, NombreUsuario, Nombre, Apellido, Correo, Contrasena, Telefono, Pais, F_Nacimiento, GooglePlusCode, PerfilPic ) 
+                                                                    VALUES (@securityStamp, @NombreUsuario, @Nombre, @Apellido, @Correo, @Contrasena, @Telefono, @Pais, @F_Nacimiento, @GooglePlusCode, @PerfilPic ); select SCOPE_IDENTITY()", usuario);
             usuario.Id = id;
         }
         public async Task<Usuario> ObtenerUsuarioPorId(int id)
@@ -70,7 +70,8 @@ namespace TFG.Repositories
             Telefono = @Telefono,
             Pais = @Pais,
             F_Nacimiento = @F_Nacimiento,
-            GooglePlusCode = @GooglePlusCode
+            GooglePlusCode = @GooglePlusCode,
+            PerfilPic = @PerfilPic
         WHERE Id = @Id", user);
         }
 

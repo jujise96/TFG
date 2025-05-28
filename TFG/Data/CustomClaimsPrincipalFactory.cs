@@ -29,7 +29,16 @@ namespace TFG.Data
             {
                 identity.AddClaim(new Claim(ClaimTypes.Role, role));
             }
+
+
+            if (user.PerfilPic.HasValue)
+            {
+                string perfilPic = user.PerfilPic?.ToString("D3")+".jpeg";
+                identity.AddClaim(new Claim("PerfilPic", perfilPic));
+            }
             return identity;
+
+            
         }
     }
 }

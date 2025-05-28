@@ -99,7 +99,7 @@ namespace TFG.Controllers
         {
             if (ModelState.IsValid)
             {
-                var usuario = new Usuario() { NombreUsuario = VMusuario.NombreUsuario, Nombre = VMusuario.Nombre, Apellido = VMusuario.Apellido, Correo = VMusuario.Correo, Contrasena = VMusuario.Contrasena, Telefono = VMusuario.Telefono, Pais = VMusuario.Pais, F_Nacimiento = VMusuario.F_Nacimiento, GooglePlusCode = VMusuario.GooglePlusCode };
+                var usuario = new Usuario() { NombreUsuario = VMusuario.NombreUsuario, Nombre = VMusuario.Nombre, Apellido = VMusuario.Apellido, Correo = VMusuario.Correo, Contrasena = VMusuario.Contrasena, Telefono = VMusuario.Telefono, Pais = VMusuario.Pais, F_Nacimiento = VMusuario.F_Nacimiento, GooglePlusCode = VMusuario.GooglePlusCode, PerfilPic = VMusuario.PerfilPic };
                 var result = await userManager.CreateAsync(usuario, password: usuario.Contrasena);
                 if (result.Succeeded)
                 {                    
@@ -111,25 +111,6 @@ namespace TFG.Controllers
                     {
                         await userManager.AddToRoleAsync(usuario, "Usuario");
                     }
-                        /*if (TempData["LoginProvider"] != null && TempData["ProviderKey"] != null)
-                        {
-                            var login = new UserLoginInfo(TempData["LoginProvider"].ToString(), TempData["ProviderKey"].ToString(), TempData["ProviderDisplayName"].ToString());
-
-                            TempData.Remove("LoginProvider");
-                            TempData.Remove("ProviderKey");
-                            TempData.Remove("ProviderDisplayName");
-
-                            var resultado = await userManager.AddLoginAsync(usuario, login);
-                            if (resultado.Succeeded)
-                            {
-                                await signInManager.SignInAsync(usuario, isPersistent: false, login.LoginProvider);
-                                return RedirectToAction("Index", "Home");
-                            }
-                            else
-                            {
-                                return View(VMusuario);
-                            }
-                        }*/
                         await signInManager.SignInAsync(usuario, isPersistent: true);
                     return RedirectToAction("Index", "Home");
                 }
@@ -178,7 +159,8 @@ namespace TFG.Controllers
                     Pais = usuario.Pais,
                     F_Nacimiento = usuario.F_Nacimiento,
                     GooglePlusCode = usuario.GooglePlusCode,
-                    loginexternos = (ICollection<LoginExterno>)await repositorioLoginExterno.ListadoLogins(usuario.Id)
+                    loginexternos = (ICollection<LoginExterno>)await repositorioLoginExterno.ListadoLogins(usuario.Id),
+                    PerfilPic = usuario.PerfilPic
                 };
 
                 return View(model);
@@ -214,21 +196,7 @@ namespace TFG.Controllers
             usuario.Pais = VMusuario.Pais;
             usuario.F_Nacimiento = VMusuario.F_Nacimiento;
             usuario.GooglePlusCode = VMusuario.GooglePlusCode;
-
-            // Si hay una nueva contraseña, la cambiamos
-            /*if (!string.IsNullOrWhiteSpace(VMusuario.Contrasena))
-            {            
-                var token = await userManager.GeneratePasswordResetTokenAsync(usuario);
-                var resultPassword = await userManager.ResetPasswordAsync(usuario, token, VMusuario.Contrasena);
-                if (!resultPassword.Succeeded)
-                {
-                    foreach (var error in resultPassword.Errors)
-                    {
-                        ModelState.AddModelError(string.Empty, error.Description);
-                    }
-                    return View(VMusuario);
-                }
-            }*/
+            usuario.PerfilPic = VMusuario.PerfilPic;
 
             var result = await userManager.UpdateAsync(usuario);
 
@@ -237,6 +205,7 @@ namespace TFG.Controllers
 
                 logger.LogInformation("Se pudo modificar  usuario: " + VMusuario.NombreUsuario + " / " + VMusuario.Correo);
                 TempData["Mensaje"] = "Datos actualizados correctamente.";
+                await signInManager.SignInAsync(usuario, isPersistent: true);
                 return RedirectToAction("Index", "Home");
             }
             else

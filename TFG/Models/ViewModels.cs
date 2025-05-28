@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore.SqlServer.Query.Internal;
 
 namespace TFG.Models
 {
@@ -60,6 +61,8 @@ namespace TFG.Models
         [StringLength(100)]
         [Display(Name = "Código Plus de Google: https://maps.google.com/pluscodes/")]
         public string GooglePlusCode { get; set; }
+
+        public int? PerfilPic { get; set; }
     }
 
 
@@ -104,6 +107,7 @@ namespace TFG.Models
         [Display(Name = "Código Plus de Google: https://maps.google.com/pluscodes/")]
         public string GooglePlusCode { get; set; }
 
+        public int? PerfilPic { get; set; }
         public ICollection<LoginExterno> loginexternos { get; set; }
     }
 
@@ -113,6 +117,9 @@ namespace TFG.Models
         public int Id { get; set; }
         public string Nombre { get; set; }
         public bool completada { get; set; }
+        public int? PerfilPic { get; set; }
+        public decimal Progreso { get; set; } = -1;
+        public string tipo { get; set; } // Puede ser "Mision", "Item" o "Juego"
     }
 
 
@@ -150,6 +157,7 @@ namespace TFG.Models
         public string Bugs { get; set; }
         public TipoQuest TipoQuest { get; set; }
         public bool Completada { get; set; }
+        public decimal Progreso { get; set; } = -1;
     }
 
     public class ItemViewModel()
@@ -164,6 +172,7 @@ namespace TFG.Models
         public string Bugs { get; set; }
         public TipoItem TipoItem { get; set; }
         public bool Completada { get; set; }
+        public decimal Progreso { get; set; } = -1;
     }
 
 
@@ -181,6 +190,7 @@ namespace TFG.Models
         public string Imagen { get; set; }
         public IFormFile? ImagenFile { get; set; }
         public string Bugs { get; set; }
+        public decimal Progreso { get; set; } = -1;
     }
 
     public class CajaDeComentariosViewModel

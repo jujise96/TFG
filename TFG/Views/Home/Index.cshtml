@@ -39,6 +39,13 @@
                         {
                             <th scope="col">Completada</th>
                         }
+
+                        @if (Model[0].Progreso != -1)
+                        {                            
+                            <th scope="col">Progreso</th>
+
+                        }
+
                         @if (User.IsInRole("Admin"))
                         {
                             <th scope="col">Acciones</th>
@@ -54,6 +61,17 @@
                                     @item.Nombre
                                 </a>
                             </td>
+
+                            @if(item.Progreso != -1)
+                            {
+                                <td>
+                                    <div class="progress mt-2" role="progressbar" aria-label="Example with label" aria-valuenow="@item.Progreso" aria-valuemin="0" aria-valuemax="100">
+                                        <div class="progress-bar" style="width: @item.Progreso%">@item.Progreso%</div>
+                                    </div>
+
+                                </td>
+                            }
+                            
                             @if ((tipo == "Mision" || tipo == "Item") && User.Identity.IsAuthenticated)
                             {
                                 <td>

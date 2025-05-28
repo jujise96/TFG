@@ -12,6 +12,7 @@ namespace TFG.Services
         Task<bool> EliminarItem(int idElemento, int Juegoid);
         Task<bool> CrearItem(Item item);
         Task<bool> ModificarItem(Item item);
+        Task<decimal> ProgresoItem(int idJuego, int idUsuario);
     }
     public class ItemService : IItemService
     {
@@ -55,6 +56,11 @@ namespace TFG.Services
         public async Task<IEnumerable<UsuarioItemCompletado>> ObtenerItemPorJuegoyUsuario(int idJuego, int idUsuario)
         {
             return await _repositorioItem.ObtenerItemPorJuegoyUsuario(idJuego, idUsuario);
+        }
+
+        public async Task<decimal> ProgresoItem(int idJuego, int idUsuario)
+        {
+            return await _repositorioItem.ProgresoItem(idJuego, idUsuario);
         }
     }
 }

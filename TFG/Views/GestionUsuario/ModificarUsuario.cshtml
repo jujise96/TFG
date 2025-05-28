@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Editar Perfil";
-    bool tienemicrosft = Model.loginexternos?.Any(loginmicrosoft => loginmicrosoft.loginprovider=="Microsoft")??false;
+    bool tienemicrosft = Model.loginexternos?.Any(loginmicrosoft => loginmicrosoft.loginprovider == "Microsoft") ?? false;
     bool tienegoogle = Model.loginexternos?.Any(logingoogle => logingoogle.loginprovider == "Google") ?? false;
 }
 
@@ -16,6 +16,29 @@
 
     @* Campo oculto si necesitas el ID del usuario para la edición *@
     @* <input type="hidden" asp-for="IdUsuario" /> *@
+
+    <h3>Selecciona tu foto de perfil:</h3>
+    <p class="text-center form-text">La imagen actual del perfil es la de menor opacidad, la seleccionada a cambiar sera la que tenga el marco azul.</p>
+    <div class="row g-2 mb-3 justify-content-center" id="profilePicGallery">
+        @for (int i = 0; i < 6; i++)
+        {
+            string imageName = i.ToString("D3") + ".jpeg"; // Formats 0 as "000", 1 as "001", etc.
+            <div class="col-auto">
+                <img src="@Url.Content("~/images/PerfilPic/" +imageName)"
+                     alt="Profile Picture @i"
+                @{
+                    var selecionado = Model.PerfilPic == i ? "opacity-25 border" : "";
+                }
+                     class="img-fluid img-thumbnail profile-pic-option @selecionado"
+                     data-pic-id="@i"
+                     style="cursor: pointer; width: 100px; height: 100px; object-fit: cover;" />
+            </div>
+        }
+    </div>
+
+    <input type="hidden" asp-for="PerfilPic" id="selectedPerfilPic" />
+    <span asp-validation-for="PerfilPic" class="text-danger"></span>
+
 
     <div class="form-group">
         <label asp-for="NombreUsuario"></label>
@@ -73,22 +96,22 @@
     </div>
 
     <div class="d-flex gap-3 mb-3 align-items-center">
-    @if (!tienemicrosft)
-    {
-        <a class="btn btn-success d-flex" asp-action="loginExterno" asp-route-proveedor="Microsoft">Vincular cuenta con Microsoft</a>
-    }
-    else if(tienemicrosft)
-    {
-        <span class=" badge fs-6 bg-dark-subtle">Cuenta Microsoft vinculada</span>
-    }
-    @if (!tienegoogle)
-    {
-        <a class="btn btn-success" asp-action="loginExterno" asp-route-proveedor="Google">Vincular cuenta con Google</a>
-    }
-    else if(tienegoogle)
-    {
-        <span class=" badge fs-6 bg-dark-subtle" style="min-height:33px;">Cuenta Google vinculada</span>
-    }
+        @if (!tienemicrosft)
+        {
+            <a class="btn btn-success d-flex" asp-action="loginExterno" asp-route-proveedor="Microsoft">Vincular cuenta con Microsoft</a>
+        }
+        else if (tienemicrosft)
+        {
+            <span class=" badge fs-6 bg-dark-subtle">Cuenta Microsoft vinculada</span>
+        }
+        @if (!tienegoogle)
+        {
+            <a class="btn btn-success" asp-action="loginExterno" asp-route-proveedor="Google">Vincular cuenta con Google</a>
+        }
+        else if (tienegoogle)
+        {
+            <span class=" badge fs-6 bg-dark-subtle" style="min-height:33px;">Cuenta Google vinculada</span>
+        }
     </div>
 
     <button type="submit" class="btn btn-primary">Guardar</button>
@@ -99,4 +122,51 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const gallery = document.getElementById('profilePicGallery');
+            const selectedPerfilPicInput = document.getElementById('selectedPerfilPic');
+
+            if (gallery) {
+                gallery.addEventListener('click', function (event) {
+                    const clickedPic = event.target.closest('.profile-pic-option');
+                    if (clickedPic) {
+                        // Eliminar las clases de selección de Bootstrap de todas las imágenes
+                        document.querySelectorAll('.profile-pic-option').forEach(img => {
+                            img.classList.remove('border', 'border-primary', 'border-3', 'shadow'); // Quitar estilos de selección
+                            img.classList.add('border', 'border-transparent'); // Restablecer el borde transparente
+                        });
+
+                        // Añadir las clases de selección de Bootstrap a la imagen clickeada
+                        clickedPic.classList.add('border', 'border-primary', 'border-3', 'shadow'); // Añadir estilos de selección
+                        clickedPic.classList.remove('border-transparent'); // Asegurarse de que no tiene el transparente
+
+                        // Almacenar el ID en el campo oculto
+                        selectedPerfilPicInput.value = clickedPic.dataset.picId;
+                    }
+                });
+
+                // Establecer la selección inicial si hay un valor en el modelo
+                const initialSelectedId = selectedPerfilPicInput.value;
+                // Only apply initial selection if a PerfilPic is set in the model
+                if (initialSelectedId !== null && initialSelectedId !== undefined && initialSelectedId !== '') {
+                    const preSelectedPic = document.querySelector(`.profile-pic-option[data-pic-id="${initialSelectedId}"]`);
+                    if (preSelectedPic) {
+                        // Ensure the initial selection applies the correct classes
+                        preSelectedPic.classList.add('border', 'border-primary', 'border-3', 'shadow');
+                        preSelectedPic.classList.remove('border-transparent');
+                    }
+                } else {
+                    // If no PerfilPic is set, select the first image by default (optional, but good UX)
+                    const firstPic = document.querySelector('.profile-pic-option[data-pic-id="0"]');
+                    if (firstPic) {
+                        firstPic.classList.add('border', 'border-primary', 'border-3', 'shadow');
+                        firstPic.classList.remove('border-transparent');
+                        selectedPerfilPicInput.value = '0'; // Set hidden input for default selection
+                    }
+                }
+            }
+        });
+    </script>
 }

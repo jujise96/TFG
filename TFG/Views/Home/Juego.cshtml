@@ -3,6 +3,8 @@
 @{
     ViewData["Title"] = Model.Nombre;
     var idJuego = Model.Id;
+    int progresoMision = TempData["progresomision"] as int? ?? 0;
+    int progresoitem = TempData["progresoitem"] as int? ?? 0;
 }
 
 <div class="text-center">
@@ -22,28 +24,44 @@
 <div class="container mt-4">
     @if (!string.IsNullOrEmpty(Model.Imagen))
     {
-            <img src="@Model.Imagen" alt="Imagen de @Model.Nombre" class="img-fluid rounded mt-2" style="max-width: 400px; height: auto;" />
+        <img src="@Model.Imagen" alt="Imagen de @Model.Nombre" class="img-fluid rounded mt-2" style="max-width: 400px; height: auto;" />
     }
     <h2>Información del Juego</h2>
     <ul class="list-unstyled">
         <li><strong>Nombre:</strong> @Model.Nombre</li>
         <li><strong>IdElem:</strong> @Model.IdElem</li>
         <li><strong>Descripción:</strong> @Model.Descripcion</li>
-        
+
     </ul>
 
+
+
     <h2>Secciones disponibles</h2>
-    <ul class="list-unstyled">
-        <li>
+    <div class="row m-5 justify-content-center text-center">
+        <div class="col-md-3">
             <a asp-controller="Home" asp-action="Misiones" asp-route-id="@idJuego">Ver Misiones</a>
-        </li>
-        <li>
+            @if (progresoMision != -1)
+            {
+                <div class="progress mt-2" role="progressbar" aria-label="Example with label" aria-valuenow="@TempData["progresomision"]" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar" style="width: @TempData["progresomision"]%">@TempData["progresomision"]%</div>
+                </div>
+            }
+
+        </div>
+        <div class="col-md-3">
             <a asp-controller="Home" asp-action="Items" asp-route-id="@idJuego">Ver Ítems</a>
-        </li>
-        <li>
+            @if (progresoMision != -1)
+            {
+                <div class="progress mt-2" role="progressbar" aria-label="Example with label" aria-valuenow="@TempData["progresoitem"]" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar" style="width: @TempData["progresoitem"]%">@TempData["progresoitem"]%</div>
+            </div>
+            }
+        </div>
+        <div class="col-md-3">
             <a asp-controller="Home" asp-action="Trucos" asp-route-id="@idJuego">Ver Truco</a>
-        </li>
-    </ul>
+        </div>
+
+    </div>
 </div>
 
 <div id="seccion-de-comentarios-juego-@Model.Id" class="seccion-de-comentarios-wrapper" data-tipo-entidad="Juego" data-entidad-id="@Model.Id" data-entidad-JuegoId="@Model.Id">

@@ -13,6 +13,8 @@ namespace TFG.Repositories
         Task<bool> EliminarItem(int idElemento, int Juegoid);
         Task<bool> CrearItem(Item item);
         Task<bool> ModificarItem(Item item);
+
+        Task<decimal> ProgresoItem(int idJuego, int idUsuario);
     }
     public class RepositorioItem : IRepositorioItem
     {
@@ -121,6 +123,29 @@ namespace TFG.Repositories
                 INNER JOIN  Items i ON uic.ItemId = i.Id 
                 WHERE uic.UsuarioId = @UsuarioId AND i.JuegoId = @JuegoId  ", new { UsuarioId = idUsuario, JuegoId = idJuego });
             return items;
+        }
+
+        public async Task<decimal> ProgresoItem(int idJuego, int idUsuario)
+        {
+            {
+                using var connection = new SqlConnection(connectionString);
+
+                // La consulta SQL que calcula el porcentaje redondeado a 3 decimales
+                string sql = @"
+            SELECT
+                CAST(ROUND(CAST(COUNT(UIC.ItemId) AS DECIMAL(18, 10)) * 100 / NULLIF(COUNT(I.Id), 0), 3) AS DECIMAL(18, 3)) AS PorcentajeItemsObtenidos
+            FROM
+                [GSY_DB].[dbo].[Items] AS I
+            LEFT JOIN
+                [GSY_DB].[dbo].[UsuarioItemCompletado] AS UIC ON I.Id = UIC.ItemId
+                AND UIC.UsuarioId = @idUsuario  -- Parámetro para el ID del usuario
+            WHERE
+                I.JuegoId = @idJuego; -- Parámetro para el ID del juego";
+
+                decimal progreso = await connection.QuerySingleOrDefaultAsync<decimal>(sql, new { idUsuario = idUsuario, idJuego = idJuego });
+
+                return progreso;
+            }
         }
     }
 }

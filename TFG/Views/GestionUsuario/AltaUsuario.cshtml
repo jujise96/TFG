@@ -5,14 +5,36 @@
 }
 
 <h2>Perfil Usuario</h2>
+
 @if (ViewData.Keys.Contains("mensaje"))
 {
-    <p>@ViewData["mensaje"]</p>
+    <p class="alert alert-info">@ViewData["mensaje"]</p>
 }
+
 <form asp-action="AltaUsuario" method="post">
-    <div asp-validation-summary="ModelOnly"></div>
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <h3>Selecciona tu foto de perfil:</h3>
+    <div class="row g-2 mb-3 justify-content-center" id="profilePicGallery">
+            @for (int i = 0; i < 6; i++)
+            {
+                string imageName = i.ToString("D3") + ".jpeg"; // Formats 0 as "000", 1 as "001", etc.
+                <div class="col-auto">
+                <img src="@Url.Content("~/images/PerfilPic/" +imageName)"
+                         alt="Profile Picture @i"
+                     class="img-fluid img-thumbnail profile-pic-option"
+                         data-pic-id="@i"
+                         style="cursor: pointer; width: 100px; height: 100px; object-fit: cover;" />
+                </div>
+            }
+    </div>
+
+    <input type="hidden" asp-for="PerfilPic" id="selectedPerfilPic" />
+    <span asp-validation-for="PerfilPic" class="text-danger"></span>
+
     <a class="btn btn-success mt-3" asp-action="loginExterno" asp-route-proveedor="Microsoft">Darse de alta con Microsoft</a>
     <a class="btn btn-success mt-3" asp-action="loginExterno" asp-route-proveedor="Google">Darse de alta con Google</a>
+
     <div class="form-group">
         <label asp-for="NombreUsuario"></label>
         <input asp-for="NombreUsuario" class="form-control" />
@@ -74,4 +96,43 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const gallery = document.getElementById('profilePicGallery');
+            const selectedPerfilPicInput = document.getElementById('selectedPerfilPic');
+
+            if (gallery) {
+                gallery.addEventListener('click', function (event) {
+                    const clickedPic = event.target.closest('.profile-pic-option');
+                    if (clickedPic) {
+                        // Eliminar las clases de selección de Bootstrap de todas las imágenes
+                        document.querySelectorAll('.profile-pic-option').forEach(img => {
+                            img.classList.remove('border', 'border-primary', 'border-3', 'shadow'); // Quitar estilos de selección
+                            img.classList.add('border', 'border-transparent'); // Restablecer el borde transparente
+                        });
+
+                        // Añadir las clases de selección de Bootstrap a la imagen clickeada
+                        clickedPic.classList.add('border', 'border-primary', 'border-3', 'shadow'); // Añadir estilos de selección
+                        clickedPic.classList.remove('border-transparent'); // Asegurarse de que no tiene el transparente
+
+                        // Almacenar el ID en el campo oculto
+                        selectedPerfilPicInput.value = clickedPic.dataset.picId;
+                    }
+                });
+
+                // Establecer la selección inicial si hay un valor en el modelo
+                const initialSelectedId = selectedPerfilPicInput.value;
+                if (initialSelectedId !== null && initialSelectedId !== undefined && initialSelectedId !== '') {
+                    const preSelectedPic = document.querySelector(`.profile-pic-option[data-pic-id="${initialSelectedId}"]`);
+                    if (preSelectedPic) {
+                        preSelectedPic.classList.add('border', 'border-primary', 'border-3', 'shadow');
+                        preSelectedPic.classList.remove('border-transparent');
+                    }
+                }
+            }
+        });
+    </script>
+
+    @* ¡Eliminamos por completo la etiqueta <style>! *@
 }

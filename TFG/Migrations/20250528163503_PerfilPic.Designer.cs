@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TFG.Data;
 
@@ -11,9 +12,11 @@ using TFG.Data;
 namespace TFG.Migrations
 {
     [DbContext(typeof(TFGContext))]
-    partial class TFGContextModelSnapshot : ModelSnapshot
+    [Migration("20250528163503_PerfilPic")]
+    partial class PerfilPic
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -316,32 +319,6 @@ namespace TFG.Migrations
                     b.UseTptMappingStrategy();
                 });
 
-            modelBuilder.Entity("TFG.Models.UsuarioComentarioLike", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ComentarioId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("Like")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ComentarioId");
-
-                    b.HasIndex("UsuarioId");
-
-                    b.ToTable("UsuarioComentarioLike");
-                });
-
             modelBuilder.Entity("TFG.Models.UsuarioItemCompletado", b =>
                 {
                     b.Property<int>("Id")
@@ -476,25 +453,6 @@ namespace TFG.Migrations
                     b.Navigation("Rol");
                 });
 
-            modelBuilder.Entity("TFG.Models.UsuarioComentarioLike", b =>
-                {
-                    b.HasOne("TFG.Models.Comentario", "Comentario")
-                        .WithMany("likes")
-                        .HasForeignKey("ComentarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("TFG.Models.Usuario", "Usuario")
-                        .WithMany("likes")
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Comentario");
-
-                    b.Navigation("Usuario");
-                });
-
             modelBuilder.Entity("TFG.Models.UsuarioItemCompletado", b =>
                 {
                     b.HasOne("TFG.Models.Item", "Item")
@@ -545,8 +503,6 @@ namespace TFG.Migrations
             modelBuilder.Entity("TFG.Models.Comentario", b =>
                 {
                     b.Navigation("Respuestas");
-
-                    b.Navigation("likes");
                 });
 
             modelBuilder.Entity("TFG.Models.Item", b =>
@@ -580,8 +536,6 @@ namespace TFG.Migrations
                     b.Navigation("LoginsExternos");
 
                     b.Navigation("MisionesCompletadas");
-
-                    b.Navigation("likes");
                 });
 #pragma warning restore 612, 618
         }

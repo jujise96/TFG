@@ -13,6 +13,7 @@ namespace TFG.Repositories
         Task<bool> EliminarMision(int idElemento, int idjuego);
         Task<bool> crearmision(Mision mision);
         Task<bool> ModificarMision(Mision mision);
+        Task<decimal> ProgresoMision(int idJuego, int idUsuario);
     }
 
     public class RepositorioMision : IRepositorioMision
@@ -40,7 +41,7 @@ namespace TFG.Repositories
                 INSERT INTO Mision (IdElem, JuegoId, Nombre, Descripcion, Imagen, StartTrigger, Bugs, TipoQuest)
                 VALUES (@IdElem, @JuegoId, @Nombre, @Descripcion, @Imagen, @StartTrigger, @Bugs, @TipoQuest)",
                     mision); // Pasamos el objeto 'mision' directamente para los parámetros
-            }            
+            }
             catch
             {
                 // Manejo de excepciones si es necesario
@@ -54,7 +55,7 @@ namespace TFG.Repositories
         {
             using var connection = new SqlConnection(connectionString);
             await connection.ExecuteAsync(@"DELETE FROM UsuarioMisionCompletada
-            WHERE UsuarioId =@UsuarioId AND MisionId=@MisionId ", new { UsuarioId = idUsuario, MisionId = idMision});
+            WHERE UsuarioId =@UsuarioId AND MisionId=@MisionId ", new { UsuarioId = idUsuario, MisionId = idMision });
         }
 
         public async Task<bool> EliminarMision(int idElemento, int idjuego)
@@ -121,8 +122,29 @@ namespace TFG.Repositories
             using var connection = new SqlConnection(connectionString);
             var misiones = await connection.QueryAsync<UsuarioMisionCompletada>(@"SELECT * FROM  UsuarioMisionCompletada umc 
                 INNER JOIN  Mision m ON umc.MisionId = m.Id 
-                WHERE umc.UsuarioId = @UsuarioId AND m.JuegoId = @JuegoId  ", new { UsuarioId= idUsuario, JuegoId= idJuego });
+                WHERE umc.UsuarioId = @UsuarioId AND m.JuegoId = @JuegoId  ", new { UsuarioId = idUsuario, JuegoId = idJuego });
             return misiones;
+        }
+
+        public async Task<decimal> ProgresoMision(int idJuego, int idUsuario)
+        {
+            using var connection = new SqlConnection(connectionString);
+
+            // La consulta SQL que calcula el porcentaje redondeado a 3 decimales
+            string sql = @"
+            SELECT
+                CAST(ROUND(CAST(COUNT(UCC.MisionId) AS DECIMAL(18, 10)) * 100 / NULLIF(COUNT(M.Id), 0), 3) AS DECIMAL(18, 3)) AS PorcentajeMisionesCompletadas
+            FROM
+                [GSY_DB].[dbo].[Mision] AS M
+            LEFT JOIN
+                [GSY_DB].[dbo].[UsuarioMisionCompletada] AS UCC ON M.Id = UCC.MisionId
+                AND UCC.UsuarioId = @idUsuario  -- Parámetro para el ID del usuario
+            WHERE
+                M.JuegoId = @idJuego; -- Parámetro para el ID del juego";
+
+            decimal progreso = await connection.QuerySingleOrDefaultAsync<decimal>(sql, new { idUsuario = idUsuario, idJuego = idJuego });
+
+            return progreso;
         }
         // Aquí puedes agregar métodos específicos para la entidad Misión
     }

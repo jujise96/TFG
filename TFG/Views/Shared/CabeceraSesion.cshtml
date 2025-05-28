@@ -4,10 +4,20 @@
 <ul class="navbar-nav">
     @if (SignInManager.IsSignedIn(User)) //Comprueba si el usuario está autenticado
     {
-        <li class="nav-item">
+        if (User.FindFirst("PerfilPic") is not null)
+        {
+            <li class="nav-item d-flex align-items-center">
+                <a class="nav-link" asp-area="" asp-controller="GestionUsuario" asp-action="ModificarUsuario" asp-route-Id="@User.FindFirst("IdUsuario").Value">
+                    <img src="@Url.Content("~/images/PerfilPic/" +@User.FindFirst("PerfilPic").Value)"
+                         class="img-fluid profile-pic-option rounded-circle"
+                         style="width: 40px; height: 40px;" />
+                </a>
+            </li>
+        }        
+        <li class="nav-item d-flex align-items-center">
             <a class="nav-link" asp-area="" asp-controller="GestionUsuario" asp-action="ModificarUsuario" asp-route-Id="@User.FindFirst("IdUsuario").Value">Perfil, @User.Identity.Name</a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item d-flex align-items-center">
             <form class="form-inline" asp-action="logout" asp-controller="GestionUsuario">
                 <button type="submit" class="nav-link btn btn-link">Logout</button>
             </form>

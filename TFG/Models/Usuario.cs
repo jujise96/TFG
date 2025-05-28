@@ -55,8 +55,11 @@ namespace TFG.Models
         public Roles Rol { get; set; } = new Roles();
         public string securityStamp { get; set; }
 
-        public ICollection<UsuarioMisionCompletada>? MisionesCompletadas { get; set; } = new List<UsuarioMisionCompletada>();
-        public ICollection<UsuarioItemCompletado>? ItemsCompletados { get; set; } = new List<UsuarioItemCompletado>();
-        public ICollection<LoginExterno>? LoginsExternos { get; set; } = new List<LoginExterno>();
+        public int? PerfilPic { get; set; }
+
+        public ICollection<UsuarioMisionCompletada> MisionesCompletadas { get; set; } = new List<UsuarioMisionCompletada>();
+        public ICollection<UsuarioItemCompletado> ItemsCompletados { get; set; } = new List<UsuarioItemCompletado>();
+        public ICollection<LoginExterno> LoginsExternos { get; set; } = new List<LoginExterno>();
+        public ICollection<UsuarioComentarioLike> likes { get; set; } = new List<UsuarioComentarioLike>();
     }
 }

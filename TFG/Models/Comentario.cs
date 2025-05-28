@@ -24,6 +24,8 @@ namespace TFG.Models
         public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
 
         public int UserId { get; set; }
-        public Usuario Usuario { get; set; } 
+        public Usuario Usuario { get; set; }
+
+        public ICollection<UsuarioComentarioLike> likes { get; set; } = new List<UsuarioComentarioLike>();
     }
 }

@@ -1,10 +1,5 @@
-using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Security.Claims;
-using System.Threading.Tasks;
-using GenerativeAI.Types;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TFG.Models;
@@ -47,6 +42,18 @@ public class HomeController : Controller
     {
         // Aquí puedes agregar la lógica para obtener los juegos y pasarlos a la vista
         var elemento = await juegoService.ListarJuegos();
+        if (signinmanager.IsSignedIn(User))
+        {
+            var usuario = await userManager.FindByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier)); // Correctly fetch the user object
+            if (usuario is not null)
+            {
+                foreach (var elem in elemento)
+                {
+                    var progreso = await juegoService.ProgresoJuego(elem.Id, usuario.Id);
+                    elem.Progreso = (int)progreso;
+                }
+            }
+        }
         ViewBag.tipoelemento = "Juego";
         return View(elemento);
     }
@@ -56,7 +63,26 @@ public class HomeController : Controller
         var elemento = await juegoService.ObtenerJuegoPorIdAsync(id);
         ViewBag.tipoelemento = "Juego";
         ViewBag.idJuego = id;
-        return View(elemento);
+        if (signinmanager.IsSignedIn(User))
+        {
+            var usuario = await userManager.FindByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier)); // Correctly fetch the user object
+            if (usuario is not null)
+            {
+                var progresoMisionDecimal = await misionService.ProgresoMision(elemento.Id, usuario.Id);
+                var progresoItemDecimal = await itemService.ProgresoItem(elemento.Id, usuario.Id);
+
+                TempData["progresomision"] = (int)progresoMisionDecimal;
+                TempData["progresoitem"] = (int)progresoItemDecimal;
+            }
+        }
+        else
+        {
+            TempData["progresomision"] = -1;
+            TempData["progresoitem"] = -1;
+        }
+
+
+            return View(elemento);
     }
 
     public async Task<IActionResult> Misiones(int id)
@@ -390,7 +416,7 @@ public class HomeController : Controller
         {
             var mision = await misionService.ObtenerMisionesPorIdAsync(idElemento);
             var urldeMision = mision.Imagen;
-            
+
             if (await misionService.EliminarMision(idElemento, idjuego))
             {
                 if (urldeMision != null)
@@ -414,7 +440,7 @@ public class HomeController : Controller
                 {
                     System.IO.File.Delete("./wwwroot" + urldeItem);
                 }
-                
+
                 return RedirectToAction("Index");
             }
             else
@@ -439,7 +465,7 @@ public class HomeController : Controller
                 {
                     System.IO.File.Delete("./wwwroot" + urlJuego);
                 }
-                
+
                 return RedirectToAction("Index");
             }
             else

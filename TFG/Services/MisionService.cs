@@ -15,6 +15,7 @@ namespace TFG.Services
         Task<bool> EliminarMision(int idElemento, int idjuego);
         Task<bool> crearmision(Mision mision);
         Task<bool> ModificarMision(Mision mision);
+        Task<decimal> ProgresoMision(int idJuego, int idUsuario);
     }
     public class MisionService : IMisionService
     {
@@ -58,6 +59,11 @@ namespace TFG.Services
         public async Task<IEnumerable<UsuarioMisionCompletada>> ObtenerQuestsPorJuegoyUsuario(int idJuego, int idUsuario)
         {
             return await _repositorioMision.ObtenerQuestsPorJuegoyUsuario(idJuego,idUsuario);
+        }
+
+        public async Task<decimal> ProgresoMision(int idJuego, int idUsuario)
+        {
+            return await _repositorioMision.ProgresoMision(idJuego, idUsuario);
         }
     }
 }
