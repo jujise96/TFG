@@ -1,0 +1,140 @@
+﻿@model List<RankingsViewModel>
+
+@{
+    ViewData["Title"] = "Rankings";
+}
+
+<div class="text-center card">
+    <h1 class="display-4">Rankings de Usuario</h1>
+
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title">Top 25 Usuarios con Más Likes</h3>
+                </div>
+                <div class="card-body">
+                    @if (Model != null && Model.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Posición</th>
+                                        <th scope="col">Usuario</th>
+                                        <th scope="col">Likes</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        var topLikes = Model.OrderByDescending(u => u.Likes).Take(25).ToList();
+                                        int likesRank = 1;
+                                    }
+                                    @foreach (var user in topLikes)
+                                    {
+                                        <tr>
+                                            <th scope="row">@likesRank</th>
+                                            <td>@user.nombreusuario</td>
+                                            <td>@user.Likes</td>
+                                        </tr>
+                                        likesRank++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p>No hay datos de rankings disponibles.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="card-title">Top 25 Usuarios con Más Dislikes</h3>
+                </div>
+                <div class="card-body">
+                    @if (Model != null && Model.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Posición</th>
+                                        <th scope="col">Usuario</th>
+                                        <th scope="col">Dislikes</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        var topDislikes = Model.OrderByDescending(u => u.Dislikes).Take(25).ToList();
+                                        int dislikesRank = 1;
+                                    }
+                                    @foreach (var user in topDislikes)
+                                    {
+                                        <tr>
+                                            <th scope="row">@dislikesRank</th>
+                                            <td>@user.nombreusuario</td>
+                                            <td>@user.Dislikes</td>
+                                        </tr>
+                                        dislikesRank++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p>No hay datos de rankings disponibles.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h3 class="card-title">Top 25 Usuarios con Más Comentarios</h3>
+                </div>
+                <div class="card-body">
+                    @if (Model != null && Model.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Posición</th>
+                                        <th scope="col">Usuario</th>
+                                        <th scope="col">Comentarios</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        var topComments = Model.OrderByDescending(u => u.TotalComentarios).Take(25).ToList();
+                                        int commentsRank = 1;
+                                    }
+                                    @foreach (var user in topComments)
+                                    {
+                                        <tr>
+                                            <th scope="row">@commentsRank</th>
+                                            <td>@user.nombreusuario</td>
+                                            <td>@user.TotalComentarios</td>
+                                        </tr>
+                                        commentsRank++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p>No hay datos de rankings disponibles.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

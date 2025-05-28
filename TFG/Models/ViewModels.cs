@@ -220,5 +220,14 @@ namespace TFG.Models
         public List<ComentarioViewModel> Respuestas { get; set; } // Para la visualización anidada
 
     }
+
+    public class RankingsViewModel
+    {
+        String nombreusuario { get; set; }
+        int Likes { get; set; }
+        int Dislikes { get; set; }
+        int TotalComentarios { get; set; }
+    }
+
 }
 

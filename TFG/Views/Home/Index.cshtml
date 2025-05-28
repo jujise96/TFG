@@ -30,8 +30,12 @@
 
     @if (Model != null && Model.Any())
     {
+        <div class="mb-3 d-flex justify-content-center align-items-center">
+            <input type="text" id="searchInput" class="form-control w-75" placeholder="Buscar por nombre...">
+        </div>
+
         <div class="table-responsive">
-            <table class="table table-striped table-hover mt-3">
+            <table class="table table-striped table-hover mt-3" id="elementTable">
                 <thead>
                     <tr>
                         <th scope="col">Nombre</th>
@@ -41,7 +45,7 @@
                         }
 
                         @if (Model[0].Progreso != -1)
-                        {                            
+                        {
                             <th scope="col">Progreso</th>
 
                         }
@@ -62,7 +66,7 @@
                                 </a>
                             </td>
 
-                            @if(item.Progreso != -1)
+                            @if (item.Progreso != -1)
                             {
                                 <td>
                                     <div class="progress mt-2" role="progressbar" aria-label="Example with label" aria-valuenow="@item.Progreso" aria-valuemin="0" aria-valuemax="100">
@@ -71,7 +75,7 @@
 
                                 </td>
                             }
-                            
+
                             @if ((tipo == "Mision" || tipo == "Item") && User.Identity.IsAuthenticated)
                             {
                                 <td>
@@ -107,22 +111,29 @@
         const tipo = '@tipo';
         let marcarcompletada = document.querySelectorAll('.checkbox-completed');
         const filterButtons = document.querySelectorAll('.filter-button');
-        // Aquí es importante: Ahora `listaElementos` apuntará a las filas de la tabla (<tr>)
         const listaElementos = document.querySelectorAll('.elemento-lista');
+        const searchInput = document.getElementById('searchInput'); // Get the new search input
         let filtroActivo = 'todos'; // Variable para almacenar el filtro activo
 
-        // Función para aplicar el filtro actual
+        // Function to apply both completion and search filters
         function aplicarFiltro() {
+            const searchTerm = searchInput.value.toLowerCase(); // Get the search term and convert to lowercase
+
             listaElementos.forEach(item => {
-                if (filtroActivo === 'todos') {
-                    item.style.display = 'table-row'; // Para mostrar la fila de la tabla
-                } else if (filtroActivo === 'completados') {
-                    const completada = item.getAttribute('data-completada');
-                    item.style.display = completada === 'true' ? 'table-row' : 'none';
+                const completada = item.getAttribute('data-completada');
+                const itemName = item.querySelector('td a').textContent.toLowerCase(); // Get the item name
+
+                const matchesSearch = itemName.includes(searchTerm);
+                let matchesCompletionFilter = true;
+
+                if (filtroActivo === 'completados') {
+                    matchesCompletionFilter = (completada === 'true');
                 } else if (filtroActivo === 'no-completados') {
-                    const completada = item.getAttribute('data-completada');
-                    item.style.display = completada === 'false' ? 'table-row' : 'none';
+                    matchesCompletionFilter = (completada === 'false');
                 }
+
+                // Show the row if it matches both the search and completion filters
+                item.style.display = (matchesSearch && matchesCompletionFilter) ? 'table-row' : 'none';
             });
         }
 
@@ -130,18 +141,23 @@
             checkbox.addEventListener('change', async function () {
                 const id = this.id.split('_')[1];
                 const completada = this.checked;
-                const listItem = this.closest('.elemento-lista'); // Sigue siendo `closest` a la fila (<tr>)
+                const listItem = this.closest('.elemento-lista');
                 if (listItem) {
                     listItem.setAttribute('data-completada', completada.toString());
                 }
 
-                const antiForgeryToken = document.querySelector('#antiForgeryForm input[name="__RequestVerificationToken"]').value;
+                // Ensure an anti-forgery token is present if needed, for example, by adding a hidden input in your form.
+                // For this example, I'm assuming you might have a hidden form with the token on your page.
+                // If not, you might need to generate one or pass it differently based on your ASP.NET setup.
+                const antiForgeryTokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+                const antiForgeryToken = antiForgeryTokenElement ? antiForgeryTokenElement.value : '';
+
 
                 const respuesta = await fetch(urlaccion, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'RequestVerificationToken': antiForgeryToken // Envía el token
+                        'RequestVerificationToken': antiForgeryToken // Send the token
                     },
                     body: JSON.stringify({
                         id: id,
@@ -150,7 +166,7 @@
                     })
                 });
                 if (respuesta.ok) {
-                    // Volver a aplicar el filtro para actualizar la vista
+                    // Reapply the filter to update the view
                     aplicarFiltro();
                 } else {
                     alert("Error al marcar el elemento.");
@@ -169,7 +185,10 @@
             });
         }
 
-        // Al cargar la página, aplicar el filtro activo inicial (Todos)
+        // Add event listener for the search input
+        searchInput.addEventListener('keyup', aplicarFiltro);
+
+        // On page load, apply the initial filter (All)
         aplicarFiltro();
     </script>
 }
