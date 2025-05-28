@@ -7,14 +7,42 @@
     <div class="media-body">
         <h5 class="mt-0 mb-1">Usuario @Model.NombreUsuario - @Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</h5>
         <p>@Model.Mensaje</p>
+
         @if (User.Identity.IsAuthenticated)
         {
-            @* Asegúrate de que User.Identity.Name es el NombreUsuario correcto para la comparación *@
-            @if (Model.NombreUsuario == User.Identity.Name || User.IsInRole("Admin"))
-            {
-                <button class="btn btn-sm btn-danger btn-eliminar-comentario" data-comentario-id="@Model.Id">Eliminar</button>
-            }
-            <button class="btn btn-sm btn-outline-primary btn-responder" data-comentario-id="@Model.Id">Responder</button>
+            <div class="d-flex align-items-center gap-2 mb-2">
+                @{
+                    // Determina las clases CSS para el like y dislike basado en la reacción del usuario
+                    string likeBtnClass = Model.UserReaction == 1 ? "btn-success" : "btn-outline-success";
+                    string dislikeBtnClass = Model.UserReaction == 0 ? "btn-danger" : "btn-outline-danger";
+                }
+
+                @* Botón de Like (pulgar arriba) *@
+                <button class="btn btn-sm @likeBtnClass btn-like-comentario"
+                        data-comentario-id="@Model.Id"
+                        data-like="true"
+                        data-current-user-reaction="@(Model.UserReaction?.ToString() ?? "null")">
+                    @* Añadir atributo para JS *@
+                    👍 <span class="likes-count">@Model.likes</span>
+                </button>
+
+                @* Botón de Dislike (pulgar abajo) *@
+                <button class="btn btn-sm @dislikeBtnClass btn-dislike-comentario"
+                        data-comentario-id="@Model.Id"
+                        data-like="false"
+                        data-current-user-reaction="@(Model.UserReaction?.ToString() ?? "null")">
+                    @* Añadir atributo para JS *@
+                    👎 <span class="dislikes-count">@Model.dislikes</span>
+                </button>
+
+                @* Botones existentes (Eliminar, Responder) *@
+                @if (Model.NombreUsuario == User.Identity.Name || User.IsInRole("Admin"))
+                {
+                    <button class="btn btn-sm btn-danger btn-eliminar-comentario" data-comentario-id="@Model.Id">Eliminar</button>
+                }
+                <button class="btn btn-sm btn-outline-primary btn-responder" data-comentario-id="@Model.Id">Responder</button>
+            </div>
+
             <div id="respuesta-form-@Model.Id" class="mt-2 d-none form-respuesta">
                 <div class="form-group">
                     <textarea class="form-control mensaje-respuesta-textarea" rows="2" placeholder="Escribe tu respuesta aquí..."></textarea>
@@ -24,6 +52,7 @@
                 <div class="mensaje-respuesta-alerta mt-2"></div>
             </div>
         }
+
         @if (Model.Respuestas is not null && Model.Respuestas.Any())
         {
             <button class="btn btn-sm btn-link btn-mostrar-respuestas" data-comentario-id="@Model.Id">
@@ -32,7 +61,6 @@
             <ul id="respuestas-de-@Model.Id" class="ml-5 d-none lista-respuestas">
                 @foreach (var respuesta in Model.Respuestas)
                 {
-                    @* Simplemente pasa el ViewData existente al parcial anidado *@
                     @await Html.PartialAsync("CajaComentarios/_ComentarioIndividual", respuesta, ViewData)
                 }
             </ul>

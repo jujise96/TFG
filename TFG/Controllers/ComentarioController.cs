@@ -57,7 +57,18 @@ public class ComentarioController : Controller
             return BadRequest("ID de entidad no válido.");
         }
 
-        var comentarios = await _comentarioService.ObtenerComentariosPorEntidad(tipo, entidadId);
+        int? userId = null;
+        if (User.Identity.IsAuthenticated)
+        {
+            // Asegúrate de que tu UserManager puede convertir el string ID a int, o usa string si el ID de usuario es string
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (int.TryParse(userIdString, out int parsedUserId))
+            {
+                userId = parsedUserId;
+            }
+        }
+
+        var comentarios = await _comentarioService.ObtenerComentariosPorEntidad(tipo, entidadId, userId);
         var comentariosViewModel = ConstruirCajaDeComentariosViewModel(tipo, entidadId, comentarios);
 
         return PartialView("CajaComentarios/_CajaDeComentarios", comentariosViewModel);
@@ -95,7 +106,9 @@ public class ComentarioController : Controller
             UserId = comentario.UserId,
             NombreUsuario = comentario.NombreUsuario,
             ComentarioPadreId = comentario.ComentarioPadreId,
-            Respuestas = new List<ComentarioViewModel>()
+            Respuestas = new List<ComentarioViewModel>(),
+            likes = comentario.likes,
+            dislikes = comentario.dislikes
         };
 
 
@@ -215,4 +228,49 @@ public class ComentarioController : Controller
         }
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> comentariolike(int idcomentario, bool like)
+    {
+        var usuario = await userManager.GetUserAsync(User);
+        if (usuario == null)
+        {
+            return Unauthorized("Debes iniciar sesión para reaccionar.");
+        }
+
+        var userId = usuario.Id;
+
+        // Llama al servicio para gestionar la reacción (que ahora maneja likes, dislikes y quitar reacción)
+        bool exito = await _comentarioService.LikeComentario(userId, idcomentario, like);
+
+        if (exito)
+        {
+            // **IMPORTANTE**: Volvemos a obtener el comentario completo para tener los conteos actualizados
+            // y la reacción del usuario actual (UserReaction)
+            var comentarioActualizado = await _comentarioService.ObtenerComentariosPorId(idcomentario);
+            if (comentarioActualizado != null)
+            {
+                // Devuelve un JSON con los conteos actualizados y la reacción del usuario.
+                // Si userReaction es null, envíalo como "null" o un valor apropiado para JS.
+                
+                return Ok(new
+                {
+                    success = true,
+                    likes = comentarioActualizado.likes,
+                    dislikes = comentarioActualizado.dislikes,
+                    userReaction = comentarioActualizado.UserReaction // Esto será 1, 0, o null
+                });
+            }
+            else
+            {
+                // Si no se encuentra el comentario actualizado (raro después de una operación exitosa),
+                // aún puedes devolver un éxito, pero los conteos serán 0 o no se actualizarán.
+                return Ok(new { success = true, likes = 0, dislikes = 0, userReaction = (int?)null });
+            }
+        }
+        else
+        {
+            return StatusCode(500, new { success = false, message = "Error al procesar la reacción del comentario." });
+        }
+    }
 }

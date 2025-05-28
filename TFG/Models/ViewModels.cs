@@ -214,6 +214,9 @@ namespace TFG.Models
         public DateTime FechaCreacion { get; set; }
         public int UserId { get; set; }
         public string NombreUsuario { get; set; } // Nueva propiedad
+        public int likes { get; set; } = 0; // Nueva propiedad para contar likes
+        public int dislikes { get; set; } = 0; // Nueva propiedad para contar dislikes
+        public int? UserReaction { get; set; } // null = sin reacción, 1 = like, 0 = dislike
         public List<ComentarioViewModel> Respuestas { get; set; } // Para la visualización anidada
 
     }

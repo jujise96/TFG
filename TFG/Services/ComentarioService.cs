@@ -8,10 +8,11 @@ namespace TFG.Services
 {
     public interface IComentarioService
     {
-        Task<IEnumerable<ComentarioViewModel>> ObtenerComentariosPorEntidad(TipoEntidad tipoEntidad, int entidadId);
+        Task<IEnumerable<ComentarioViewModel>> ObtenerComentariosPorEntidad(TipoEntidad tipoEntidad, int entidadId, int? userId = null);
         Task<bool> GuardarComentario(ComentarioViewModel nuevoComentario);
         Task<ComentarioViewModel> ObtenerComentariosPorId(int comentarioId);
         Task<bool> EliminarComentario(int idcomentario);
+        public Task<bool> LikeComentario(int idusurio, int idcomentario, bool like);
     }
 
     public class ComentarioService : IComentarioService
@@ -23,9 +24,9 @@ namespace TFG.Services
             _comentarioRepository = comentarioRepository;
         }
 
-        public async Task<IEnumerable<ComentarioViewModel>> ObtenerComentariosPorEntidad(TipoEntidad tipoEntidad, int entidadId)
+        public async Task<IEnumerable<ComentarioViewModel>> ObtenerComentariosPorEntidad(TipoEntidad tipoEntidad, int entidadId, int? userId = null)
         {
-            return await _comentarioRepository.ObtenerComentariosPorEntidad(tipoEntidad, entidadId);
+            return await _comentarioRepository.ObtenerComentariosPorEntidad(tipoEntidad, entidadId, userId);
         }
 
         public async Task<bool> GuardarComentario(ComentarioViewModel nuevoComentario)
@@ -44,5 +45,9 @@ namespace TFG.Services
             return await _comentarioRepository.EliminarComentario(idcomentario);
         }
 
+        public async Task<bool> LikeComentario(int idusurio, int idcomentario, bool like)
+        {
+            return await _comentarioRepository.LikeComentario(idusurio, idcomentario, like);
+        }
     }
 }

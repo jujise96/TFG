@@ -18,6 +18,42 @@
         }, duracion);
     }
 
+    // Función para actualizar los conteos de likes/dislikes en el DOM
+    function updateLikeDislikeButtons(comentarioElement, newLikes, newDislikes, userReaction) {
+        const likeBtn = comentarioElement.querySelector('.btn-like-comentario');
+        const dislikeBtn = comentarioElement.querySelector('.btn-dislike-comentario');
+        const likesCountSpan = comentarioElement.querySelector('.likes-count');
+        const dislikesCountSpan = comentarioElement.querySelector('.dislikes-count');
+
+        // Actualizar conteos
+        if (likesCountSpan) likesCountSpan.textContent = newLikes;
+        if (dislikesCountSpan) dislikesCountSpan.textContent = newDislikes;
+
+        // Actualizar clases de los botones
+        if (likeBtn) {
+            if (userReaction === 1) { // Usuario dio like
+                likeBtn.classList.remove('btn-outline-success');
+                likeBtn.classList.add('btn-success');
+            } else { // Usuario no dio like o dio dislike
+                likeBtn.classList.remove('btn-success');
+                likeBtn.classList.add('btn-outline-success');
+            }
+            likeBtn.dataset.currentUserReaction = userReaction !== null ? userReaction.toString() : "null";
+        }
+
+        if (dislikeBtn) {
+            if (userReaction === 0) { // Usuario dio dislike
+                dislikeBtn.classList.remove('btn-outline-danger');
+                dislikeBtn.classList.add('btn-danger');
+            } else { // Usuario no dio dislike o dio like
+                dislikeBtn.classList.remove('btn-danger');
+                dislikeBtn.classList.add('btn-outline-danger');
+            }
+            dislikeBtn.dataset.currentUserReaction = userReaction !== null ? userReaction.toString() : "null";
+        }
+    }
+
+
     // Función principal para cargar comentarios
     async function cargarComentarios(tipoEntidad, entidadId, comentariosDiv) {
         comentariosDiv.innerHTML = '<p>Cargando comentarios...</p>';
@@ -71,18 +107,12 @@
 
                 let juegoIdEnviar = '';
                 if (currentTipoEntidad === 'Juego') {
-                    juegoIdEnviar = currentEntidadId; // Si es un juego, su ID es el ID del juego
+                    juegoIdEnviar = currentEntidadId;
                 } else {
-                    // Para Mision, Item, Truco, busca el JuegoId en el atributo data-entidad-JuegoId
-                    // del elemento comentariosWrapper (o el contenedor que lo tenga).
-                    // Asumimos que `comentariosWrapper` es el div que tiene el data-entidad-JuegoId
-                    // y que fue encontrado por `document.querySelectorAll('[id^="seccion-de-comentarios"]')`
                     if (comentariosWrapper && comentariosWrapper.dataset.entidadJuegoid) {
                         juegoIdEnviar = comentariosWrapper.dataset.entidadJuegoid;
                     } else {
                         console.warn(`No se encontró data-entidad-JuegoId para la entidad ${currentTipoEntidad} con ID ${currentEntidadId}.`);
-                        // Considera qué hacer si no se encuentra: ¿enviar 0? ¿bloquear?
-                        // Si quieres que se envíe 0, juegoIdEnviar ya sería 0 (vacío -> 0 en C#)
                     }
                 }
 
@@ -110,22 +140,15 @@
                     if (response.ok) {
                         mensajeTextarea.value = "";
                         mostrarAlerta(mensajeRespuestaDiv, 'Comentario enviado.', 'success');
-                        await cargarComentarios(currentTipoEntidad, currentEntidadId, comentariosWrapper); // Recargar la sección completa
+                        await cargarComentarios(currentTipoEntidad, currentEntidadId, comentariosWrapper);
                     } else {
-
                         const errorText = await response.text();
                         console.error('Error al enviar el comentario:', response.status, response.statusText, errorText);
-                        // Asume que si es un 400 Bad Request, el texto de error es el mensaje de moderación
                         if (response.status === 400) {
                             mostrarAlerta(mensajeRespuestaDiv, `Error: ${errorText}`, 'danger');
                         } else {
                             mostrarAlerta(mensajeRespuestaDiv, `Error al enviar el comentario: ${errorText || 'Inténtalo de nuevo.'}`, 'danger');
                         }
-
-                        //antiguo
-                        //const errorText = await response.text();
-                        //console.error('Error al enviar el comentario:', response.status, response.statusText, errorText);
-                        //mostrarAlerta(mensajeRespuestaDiv, `Error al enviar el comentario: ${errorText || 'Inténtalo de nuevo.'}`, 'danger');
                     }
                 } catch (error) {
                     console.error('Error de red o procesamiento al enviar comentario:', error);
@@ -138,13 +161,13 @@
                 const comentarioId = target.dataset.comentarioId;
                 const respuestaForm = document.getElementById(`respuesta-form-${comentarioId}`);
                 if (respuestaForm) {
-                    respuestaForm.classList.toggle('d-none'); // Toggle para mostrar/ocultar
+                    respuestaForm.classList.toggle('d-none');
                     const textarea = respuestaForm.querySelector('.mensaje-respuesta-textarea');
                     if (!respuestaForm.classList.contains('d-none')) {
-                        textarea.focus(); // Poner el foco en el textarea si se muestra
+                        textarea.focus();
                     } else {
-                        textarea.value = ''; // Limpiar si se oculta
-                        respuestaForm.querySelector('.mensaje-respuesta-alerta').innerHTML = ''; // Limpiar alertas
+                        textarea.value = '';
+                        respuestaForm.querySelector('.mensaje-respuesta-alerta').innerHTML = '';
                     }
                 }
             }
@@ -165,8 +188,7 @@
                 const respuestaForm = target.closest('.form-respuesta');
                 const mensajeTextarea = respuestaForm.querySelector('.mensaje-respuesta-textarea');
                 const mensajeRespuestaDiv = respuestaForm.querySelector('.mensaje-respuesta-alerta');
-                const comentarioIndividual = target.closest('.comentario-individual'); // Para obtener el contexto
-                const parentContainer = target.closest('[data-entidad-juegoid]');
+                const comentarioIndividual = target.closest('.comentario-individual');
 
                 const currentTipoEntidad = comentarioIndividual.dataset.tipoEntidad;
                 const currentEntidadId = comentarioIndividual.dataset.entidadId;
@@ -175,18 +197,12 @@
 
                 let juegoIdEnviar = '';
                 if (currentTipoEntidad === 'Juego') {
-                    juegoIdEnviar = currentEntidadId; // Si es un juego, su ID es el ID del juego
+                    juegoIdEnviar = currentEntidadId;
                 } else {
-                    // Para Mision, Item, Truco, busca el JuegoId en el atributo data-entidad-JuegoId
-                    // del elemento comentariosWrapper (o el contenedor que lo tenga).
-                    // Asumimos que `comentariosWrapper` es el div que tiene el data-entidad-JuegoId
-                    // y que fue encontrado por `document.querySelectorAll('[id^="seccion-de-comentarios"]')`
                     if (comentariosWrapper && comentariosWrapper.dataset.entidadJuegoid) {
                         juegoIdEnviar = comentariosWrapper.dataset.entidadJuegoid;
                     } else {
                         console.warn(`No se encontró data-entidad-JuegoId para la entidad ${currentTipoEntidad} con ID ${currentEntidadId}.`);
-                        // Considera qué hacer si no se encuentra: ¿enviar 0? ¿bloquear?
-                        // Si quieres que se envíe 0, juegoIdEnviar ya sería 0 (vacío -> 0 en C#)
                     }
                 }
 
@@ -214,10 +230,8 @@
                     if (response.ok) {
                         mensajeTextarea.value = "";
                         mostrarAlerta(mensajeRespuestaDiv, 'Respuesta enviada.', 'success');
-                        // Recargar la sección completa para ver la nueva respuesta
                         await cargarComentarios(currentTipoEntidad, currentEntidadId, comentariosWrapper);
                     } else {
-
                         const errorText = await response.text();
                         console.error('Error al enviar la respuesta:', response.status, response.statusText, errorText);
                         if (response.status === 400) {
@@ -225,10 +239,6 @@
                         } else {
                             mostrarAlerta(mensajeRespuestaDiv, `Error al enviar la respuesta: ${errorText || 'Inténtalo de nuevo.'}`, 'danger');
                         }
-                        //antiguo
-                        //const errorText = await response.text();
-                        //console.error('Error al enviar la respuesta:', response.status, response.statusText, errorText);
-                        //mostrarAlerta(mensajeRespuestaDiv, `Error al enviar la respuesta: ${errorText || 'Inténtalo de nuevo.'}`, 'danger');
                     }
                 } catch (error) {
                     console.error('Error de red o procesamiento al enviar respuesta:', error);
@@ -239,7 +249,7 @@
             // --- Botón Eliminar Comentario ---
             if (target.classList.contains('btn-eliminar-comentario')) {
                 const comentarioId = target.dataset.comentarioId;
-                const comentarioIndividual = target.closest('.comentario-individual'); // Para obtener el contexto
+                const comentarioIndividual = target.closest('.comentario-individual');
 
                 const currentTipoEntidad = comentarioIndividual.dataset.tipoEntidad;
                 const currentEntidadId = comentarioIndividual.dataset.entidadId;
@@ -263,8 +273,8 @@
                         });
 
                         if (response.ok) {
-                            alert('Comentario eliminado exitosamente.'); // Usar alert simple aquí para confirmación rápida
-                            await cargarComentarios(currentTipoEntidad, currentEntidadId, comentariosWrapper); // Recargar
+                            alert('Comentario eliminado exitosamente.');
+                            await cargarComentarios(currentTipoEntidad, currentEntidadId, comentariosWrapper);
                         } else if (response.status === 403) {
                             alert('No tienes permiso para eliminar este comentario.');
                         } else if (response.status === 404) {
@@ -291,6 +301,75 @@
                     target.textContent = respuestasContainer.classList.contains('d-none')
                         ? `Ver ${numRespuestas} respuestas`
                         : `Ocultar respuestas`;
+                }
+            }
+
+            // ---  Botones de Like/Dislike ---
+            if (target.classList.contains('btn-like-comentario') || target.classList.contains('btn-dislike-comentario')) {
+                const button = target.closest('button');
+                const comentarioId = button.dataset.comentarioId;
+                const isLikeButton = button.dataset.like === 'true'; // True si es el botón de like, false si es el de dislike
+
+                // Obtener la reacción actual del usuario (del atributo data- en el botón)
+                const currentUserReaction = button.dataset.currentUserReaction; // "null", "1", o "0"
+
+                let actionType; // "like", "dislike", "remove_like", "remove_dislike"
+                let sendLikeValue; // el valor 'like' que se enviará al controlador (true/false)
+
+                if (isLikeButton) { // Si se hizo clic en el botón de LIKE
+                    if (currentUserReaction === "1") { // Si el usuario ya dio like, ahora lo quiere quitar
+                        actionType = "remove_like";
+                        sendLikeValue = false; // O cualquier valor que tu backend interprete como "quitar reacción"
+                    } else { // El usuario no dio like (o dio dislike), ahora quiere dar like
+                        actionType = "like";
+                        sendLikeValue = true;
+                    }
+                } else { // Si se hizo clic en el botón de DISLIKE
+                    if (currentUserReaction === "0") { // Si el usuario ya dio dislike, ahora lo quiere quitar
+                        actionType = "remove_dislike";
+                        sendLikeValue = true; // O cualquier valor que tu backend interprete como "quitar reacción"
+                    } else { // El usuario no dio dislike (o dio like), ahora quiere dar dislike
+                        actionType = "dislike";
+                        sendLikeValue = false;
+                    }
+                }
+
+                const antiForgeryToken = getAntiForgeryToken();
+                if (!antiForgeryToken) {
+                    alert('Error de seguridad: No se pudo obtener el token de verificación.');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/Comentario/comentariolike', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'RequestVerificationToken': antiForgeryToken
+                        },
+                        // Envía idcomentario y el booleano 'like' al controlador
+                        body: `idcomentario=${comentarioId}&like=${sendLikeValue}`
+                    });
+
+                    if (response.ok) {
+                        // Asumiendo que el controlador devuelve un JSON con los nuevos conteos y la reacción del usuario
+                        // Ejemplo: { success: true, likes: 10, dislikes: 2, userReaction: 1 } (1 para like, 0 para dislike, null para ninguna)
+                        const data = await response.json(); // Parsea la respuesta JSON
+
+                        // Actualiza los botones y conteos en el frontend
+                        const comentarioElement = button.closest('.comentario-individual');
+                        updateLikeDislikeButtons(comentarioElement, data.likes, data.dislikes, data.userReaction);
+
+                    } else if (response.status === 401) {
+                        alert('Debes iniciar sesión para reaccionar a un comentario.');
+                    } else {
+                        const errorText = await response.text();
+                        console.error('Error al enviar like/dislike:', response.status, response.statusText, errorText);
+                        alert(`Error al reaccionar al comentario: ${errorText || 'Inténtalo de nuevo.'}`);
+                    }
+                } catch (error) {
+                    console.error('Error de red o procesamiento al enviar like/dislike:', error);
+                    alert('Ocurrió un error inesperado al reaccionar al comentario.');
                 }
             }
         });
