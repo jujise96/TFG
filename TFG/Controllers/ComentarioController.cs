@@ -273,4 +273,11 @@ public class ComentarioController : Controller
             return StatusCode(500, new { success = false, message = "Error al procesar la reacción del comentario." });
         }
     }
+
+    public async Task<IActionResult> Rankings()
+    {
+        var rankings = await _comentarioService.ObtenerRankingsUsuariosAsync();
+        return View(rankings);
+    }
+
 }

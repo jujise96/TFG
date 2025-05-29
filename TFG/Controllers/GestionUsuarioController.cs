@@ -57,6 +57,7 @@ namespace TFG.Controllers
         }
 
         [HttpPost]
+
         public async Task<IActionResult> InicioSesion(IniciarSesionViewModel usuario)
         {
             if (ModelState.IsValid)

@@ -223,10 +223,10 @@ namespace TFG.Models
 
     public class RankingsViewModel
     {
-        String nombreusuario { get; set; }
-        int Likes { get; set; }
-        int Dislikes { get; set; }
-        int TotalComentarios { get; set; }
+        public String nombreusuario { get; set; }
+        public int Likes { get; set; }
+        public int Dislikes { get; set; }
+        public int TotalComentarios { get; set; }
     }
 
 }

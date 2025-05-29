@@ -13,6 +13,8 @@ namespace TFG.Services
         Task<ComentarioViewModel> ObtenerComentariosPorId(int comentarioId);
         Task<bool> EliminarComentario(int idcomentario);
         public Task<bool> LikeComentario(int idusurio, int idcomentario, bool like);
+        Task<IEnumerable<RankingsViewModel>> ObtenerRankingsUsuariosAsync();
+
     }
 
     public class ComentarioService : IComentarioService
@@ -48,6 +50,11 @@ namespace TFG.Services
         public async Task<bool> LikeComentario(int idusurio, int idcomentario, bool like)
         {
             return await _comentarioRepository.LikeComentario(idusurio, idcomentario, like);
+        }
+
+        public async Task<IEnumerable<RankingsViewModel>> ObtenerRankingsUsuariosAsync()
+        {
+            return await _comentarioRepository.ObtenerRankingsUsuariosAsync();
         }
     }
 }

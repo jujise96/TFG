@@ -13,6 +13,7 @@ namespace TFG.Repositories
         //public Task<bool> ModificarComentario(Comentario comentario)
         public Task<bool> EliminarComentario(int id);
         public Task<bool> LikeComentario(int idusurio, int idcomentario, bool like);
+        Task<IEnumerable<RankingsViewModel>> ObtenerRankingsUsuariosAsync();
     }
 
     public class RepositorioComentario : IRepositorioComentario
@@ -217,6 +218,31 @@ namespace TFG.Repositories
                                         // Log the exception
                                         // Console.WriteLine($"Error al gestionar la reacción del comentario: {ex.Message}");
                 return false;
+            }
+        }
+
+        public async Task<IEnumerable<RankingsViewModel>> ObtenerRankingsUsuariosAsync()
+        {
+            using var connection = new SqlConnection(connectionString);
+            try
+            {
+                return await connection.QueryAsync<RankingsViewModel>(@"
+                SELECT
+                    u.NombreUsuario AS nombreusuario,
+                    ISNULL(SUM(CASE WHEN ucl.[Like] = 1 THEN 1 ELSE 0 END), 0) AS Likes,
+                    ISNULL(SUM(CASE WHEN ucl.[Like] = 0 THEN 1 ELSE 0 END), 0) AS Dislikes,
+                    COUNT(c.Id) AS TotalComentarios
+                FROM Usuarios u
+                LEFT JOIN Comentario c ON u.Id = c.UserId
+                LEFT JOIN UsuarioComentarioLike ucl ON c.Id = ucl.ComentarioId
+                GROUP BY u.Id, u.NombreUsuario
+                ORDER BY TotalComentarios DESC; 
+            ");
+            }
+            catch (SqlException ex)
+            {
+                Console.WriteLine($"Error al obtener los rankings de usuarios: {ex.Message}");
+                return Enumerable.Empty<RankingsViewModel>(); // Retorna una lista vacía en caso de error
             }
         }
     }
