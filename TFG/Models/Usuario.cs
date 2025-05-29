@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
+using TFG.Models.Validaciones;
 
 namespace TFG.Models
 {
@@ -19,16 +20,19 @@ namespace TFG.Models
         [Required(ErrorMessage = "El nombre es obligatorio")]
         [StringLength(50)]
         [Display(Name = "Nombre")]
+        [AntiInjeciones]
         public string Nombre { get; set; }
 
         [StringLength(50)]
         [Display(Name = "Apellido")]
+        [AntiInjeciones]
         public string Apellido { get; set; }
 
         [Required(ErrorMessage = "El correo electrónico es obligatorio")]
         [EmailAddress(ErrorMessage = "El correo no tiene un formato válido")]
         [StringLength(100)]
         [Display(Name = "Correo Electrónico")]
+        [AntiInjeciones]
         public string Correo { get; set; }
 
         [Required(ErrorMessage = "La contraseña es obligatoria")]
@@ -38,10 +42,12 @@ namespace TFG.Models
 
         [StringLength(20)]
         [Display(Name = "Teléfono")]
+        [AntiInjeciones]
         public string Telefono { get; set; }
 
         [StringLength(50)]
         [Display(Name = "País")]
+        [AntiInjeciones]
         public string Pais { get; set; }
 
         [Display(Name = "Fecha de Nacimiento")]
@@ -49,6 +55,7 @@ namespace TFG.Models
 
         [StringLength(100)]
         [Display(Name = "Código Plus de Google: https://maps.google.com/pluscodes/")]
+        [AntiInjeciones]
         public string GooglePlusCode { get; set; }
 
         public int? RolId { get; set; }

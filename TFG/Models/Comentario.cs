@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using TFG.Models.Validaciones;
 
 namespace TFG.Models
 {
@@ -19,6 +20,7 @@ namespace TFG.Models
         public ICollection<Comentario> Respuestas { get; set; }
         [Required]
         [MaxLength(1000)] // Ejemplo de longitud máxima para el mensaje
+        [AntiInjeciones]
         public string Mensaje { get; set; }
 
         public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;

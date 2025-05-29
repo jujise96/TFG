@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using TFG.Models.Validaciones;
 
 namespace TFG.Models
 {
@@ -16,10 +17,11 @@ namespace TFG.Models
         public int JuegoId { get; set; }
 
         public Juego Juego { get; set; }
-
+        [AntiInjeciones]
         public string Nombre { get; set; }
+        [AntiInjeciones]
         public string Descripcion { get; set; }
-
+        [AntiInjeciones]
         public string Trucos { get; set; }
     }
 }
