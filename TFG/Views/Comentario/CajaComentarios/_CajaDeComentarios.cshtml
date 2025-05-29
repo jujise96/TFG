@@ -27,6 +27,7 @@
         {
             <h4>Dejar un comentario</h4>
             <form class="form-nuevo-comentario" data-tipo-entidad="@Model.TipoEntidad" data-entidad-id="@Model.EntidadId">
+                @Html.AntiForgeryToken()
                 <div class="form-group">
                     <textarea class="form-control mensaje-nuevo-comentario" rows="3" placeholder="Escribe tu comentario aquí..."></textarea>
                 </div>

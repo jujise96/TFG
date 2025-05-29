@@ -23,6 +23,7 @@
         @if (User.IsInRole("Admin"))
         {
             <form method="post" class="d-inline" asp-controller="Home" asp-action="CrearElemento" asp-route-tipo="@tipo" asp-route-idJuego="@idJuego">
+                @Html.AntiForgeryToken()
                 <button type="submit" class="btn btn-outline-secondary m-1 btn-sm">Crear nuevo @tipo</button>
             </form>
         }
@@ -44,11 +45,11 @@
                             <th scope="col">Completada</th>
                         }
 
-                        @if (Model[0].Progreso != -1)
+                        @if (tipo == "Juego")
                         {
                             <th scope="col">Progreso</th>
-
                         }
+
 
                         @if (User.IsInRole("Admin"))
                         {
@@ -66,15 +67,25 @@
                                 </a>
                             </td>
 
-                            @if (item.Progreso != -1)
+
+                            @if (tipo == "Juego")
                             {
                                 <td>
-                                    <div class="progress mt-2" role="progressbar" aria-label="Example with label" aria-valuenow="@item.Progreso" aria-valuemin="0" aria-valuemax="100">
-                                        <div class="progress-bar" style="width: @item.Progreso%">@item.Progreso%</div>
-                                    </div>
+                                    @if(item.Progreso >0){
 
+                                        <div class="progress mt-2" role="progressbar" aria-label="Example with label" aria-valuenow="@item.Progreso" aria-valuemin="0" aria-valuemax="100">
+                                            <div class="progress-bar" style="width: @item.Progreso%">@item.Progreso%</div>
+                                        </div>
+
+                                    }else{
+
+                                        <p>¡Animate a empezar una partida!</p>
+
+                                    }
                                 </td>
+
                             }
+
 
                             @if ((tipo == "Mision" || tipo == "Item") && User.Identity.IsAuthenticated)
                             {
@@ -86,6 +97,7 @@
                             {
                                 <td>
                                     <form method="post" asp-controller="Home" asp-action="eliminarelemento" class="d-inline">
+                                        @Html.AntiForgeryToken()
                                         <input type="hidden" name="tipo" value="@tipo" />
                                         <input type="hidden" name="idelemento" value="@item.Id" />
                                         <input type="hidden" name="idjuego" value="@item.idJuego" />

@@ -12,13 +12,16 @@
         @if (User.IsInRole("Admin"))
         {
             <form method="post" asp-controller="Home" asp-action="ModificarElemento" asp-route-tipo="Item" asp-route-idelemento=@Model.Id>
+                @Html.AntiForgeryToken()
                 <button type="submit" class="btn btn-outline-secondary btn-sm mt-2 mb-2 w-50">Modificar Item: @Model.Nombre</button>
             </form>
         }
         <form asp-action="MarcarItemCompletado" asp-controller="GestionUsuario" method="post">
+            @Html.AntiForgeryToken()
             @if (@Model.Completada)
             {
                 <form asp-controller="GestionUsuario" asp-action="MarcarItemCompletado" method="post">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" name="juegoId" value="@Model.JuegoId" />
                     <input type="hidden" name="itemId" value="@Model.Id" />
                     <input type="hidden" name="check" value=true />
@@ -28,6 +31,7 @@
             else if (!(@Model.Completada))
             {
                 <form asp-controller="GestionUsuario" asp-action="MarcarItemCompletado" method="post">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" name="juegoId" value="@Model.JuegoId" />
                     <input type="hidden" name="itemId" value="@Model.Id" />
                     <input type="hidden" name="check" value=false />

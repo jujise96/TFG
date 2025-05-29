@@ -128,10 +128,12 @@ namespace TFG.Repositories
 
         public async Task<decimal> ProgresoMision(int idJuego, int idUsuario)
         {
-            using var connection = new SqlConnection(connectionString);
+            try
+            {
+                using var connection = new SqlConnection(connectionString);
 
-            // La consulta SQL que calcula el porcentaje redondeado a 3 decimales
-            string sql = @"
+                // La consulta SQL que calcula el porcentaje redondeado a 3 decimales
+                string sql = @"
             SELECT
                 CAST(ROUND(CAST(COUNT(UCC.MisionId) AS DECIMAL(18, 10)) * 100 / NULLIF(COUNT(M.Id), 0), 3) AS DECIMAL(18, 3)) AS PorcentajeMisionesCompletadas
             FROM
@@ -142,9 +144,15 @@ namespace TFG.Repositories
             WHERE
                 M.JuegoId = @idJuego; -- Parámetro para el ID del juego";
 
-            decimal progreso = await connection.QuerySingleOrDefaultAsync<decimal>(sql, new { idUsuario = idUsuario, idJuego = idJuego });
+                decimal progreso = await connection.QuerySingleOrDefaultAsync<decimal>(sql, new { idUsuario = idUsuario, idJuego = idJuego });
 
-            return progreso;
+                return progreso;
+            }
+            catch
+            {
+                return -1;
+            }
+            
         }
         // Aquí puedes agregar métodos específicos para la entidad Misión
     }

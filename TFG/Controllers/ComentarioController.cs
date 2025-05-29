@@ -43,7 +43,7 @@ public class ComentarioController : Controller
 
     }
 
-
+    [AllowAnonymous]
     [HttpGet]
     public async Task<IActionResult> MostrarComentarios(string tipoEntidad, int entidadId)
     {
@@ -123,6 +123,7 @@ public class ComentarioController : Controller
 
     [HttpPost]
     [Authorize]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> CrearComentario(string tipoEntidad, int entidadId, string mensaje, int? comentarioPadreId, int juegoId)
     {
         if (!Enum.TryParse<TipoEntidad>(tipoEntidad, true, out var tipo))
@@ -274,6 +275,7 @@ public class ComentarioController : Controller
         }
     }
 
+    [AllowAnonymous]
     public async Task<IActionResult> Rankings()
     {
         var rankings = await _comentarioService.ObtenerRankingsUsuariosAsync();

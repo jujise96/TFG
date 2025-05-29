@@ -9,6 +9,7 @@
         <p>@ViewBag.Mensaje</p>    
 }
 <form asp-action="RecuperarContrasena" method="post">
+    @Html.AntiForgeryToken()
     <div asp-validation-summary="ModelOnly"></div>
     <div class="form-group">
 

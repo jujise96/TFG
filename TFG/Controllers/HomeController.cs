@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TFG.Models;
@@ -38,6 +39,7 @@ public class HomeController : Controller
         return View();
     }
 
+    [AllowAnonymous]
     public async Task<IActionResult> Index()
     {
         // Aquí puedes agregar la lógica para obtener los juegos y pasarlos a la vista
@@ -58,6 +60,7 @@ public class HomeController : Controller
         return View(elemento);
     }
 
+    [AllowAnonymous]
     public async Task<IActionResult> Juego(int id)
     {
         var elemento = await juegoService.ObtenerJuegoPorIdAsync(id);
@@ -85,6 +88,7 @@ public class HomeController : Controller
             return View(elemento);
     }
 
+    [AllowAnonymous]
     public async Task<IActionResult> Misiones(int id)
     {
 
@@ -115,6 +119,7 @@ public class HomeController : Controller
         return View("Index", elementos);
     }
 
+    [AllowAnonymous]
     public async Task<IActionResult> Items(int id)
     {
         var elementos = await juegoService.ObtenerItemsPorJuegoAsync(id);
@@ -143,6 +148,7 @@ public class HomeController : Controller
         return View("Index", elementos);
     }
 
+    [AllowAnonymous]
     public async Task<IActionResult> Mision(int id, int idJuego)
     {
         var elemento = await misionService.ObtenerMisionesPorIdAsync(id);
@@ -176,6 +182,7 @@ public class HomeController : Controller
         return View("Mision", misionvm);
     }
 
+    [AllowAnonymous]
     public async Task<IActionResult> Item(int id, int idJuego)
     {
         var elemento = await itemService.ObtenerItemPorIdAsync(id);
@@ -208,6 +215,7 @@ public class HomeController : Controller
         return View("Item", itemvm);
     }
 
+    [AllowAnonymous]
     public async Task<IActionResult> Trucos(int id)
     {
         var elemento = await trucoService.ObtenerTrucoPorIdAsync(id);
@@ -228,6 +236,8 @@ public class HomeController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
+    [AutoValidateAntiforgeryToken]
     public async Task<IActionResult> CrearJuego(JuegoViewModel juegovm)
     {
 
@@ -274,6 +284,7 @@ public class HomeController : Controller
 
     }
 
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CrearMision(MisionViewModel misionvm)
     {
         if (misionvm.ImagenFile != null)
@@ -320,6 +331,7 @@ public class HomeController : Controller
         return RedirectToAction("Mensaje", new { mensaje = "Error al intentar crear la mision asegurese de que el Id del juego existe" });
     }
 
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CrearItem(ItemViewModel itemvm)
     {
         // Manejar la subida de la imagen
@@ -407,6 +419,8 @@ public class HomeController : Controller
         }
     }
 
+    [Authorize(Roles = "Admin")]
+    [AutoValidateAntiforgeryToken]
     public async Task<IActionResult> eliminarelemento(string tipo, int idelemento, int idjuego)
     {
         var idJuego = int.Parse(HttpContext.Request.Form["idjuego"]);
@@ -489,6 +503,8 @@ public class HomeController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
+    [AutoValidateAntiforgeryToken]
     public async Task<IActionResult> CrearElemento(string tipo, string idJuego)
     {
         if (tipo == "Juego")
@@ -521,6 +537,8 @@ public class HomeController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
+    [AutoValidateAntiforgeryToken]
     public async Task<IActionResult> ModificarElemento(string tipo, int idelemento)
     {
         try
@@ -558,6 +576,7 @@ public class HomeController : Controller
         }
     }
 
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ModificarJuego(JuegoViewModel juegovm)
     {
         // Manejar la subida de la nueva imagen
@@ -625,6 +644,7 @@ public class HomeController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ModificarMision(MisionViewModel misionvm)
     {
         // Manejar la subida de la nueva imagen
@@ -689,6 +709,7 @@ public class HomeController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ModificarItem(ItemViewModel itemvm)
     {
         // Manejar la subida de la nueva imagen
@@ -752,6 +773,7 @@ public class HomeController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ModificarTruco(Truco truco)
     {
         if (await trucoService.ModificarTruco(truco))

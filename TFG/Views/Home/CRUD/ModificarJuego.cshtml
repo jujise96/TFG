@@ -11,6 +11,7 @@
 <div class="container mt-4">
 
     <form asp-action="ModificarJuego" method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
         @* Si la Id ya existe (estamos editando), incluirla como campo oculto *@
         @if (Model?.Id > 0)
         {

@@ -50,12 +50,14 @@ namespace TFG.Controllers
             return new string(resultado);
         }
 
-
+        [AllowAnonymous]
         public IActionResult InicioSesion()
         {
             return View();
         }
 
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
         [HttpPost]
 
         public async Task<IActionResult> InicioSesion(IniciarSesionViewModel usuario)
@@ -90,11 +92,14 @@ namespace TFG.Controllers
             return View(usuario);
         }
 
+        [AllowAnonymous]
         public IActionResult AltaUsuario()
         {
             return View();
         }
 
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
         [HttpPost]
         public async Task<IActionResult> AltaUsuario(RegistrarUsuarioViewModel VMusuario)
         {
@@ -126,6 +131,7 @@ namespace TFG.Controllers
             }
             return View(VMusuario);
         }
+
 
         [HttpPost]
         public async Task<IActionResult> logout()
@@ -173,7 +179,9 @@ namespace TFG.Controllers
             }
         }
 
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ModificarUsuario(ModificarUsuarioViewModel VMusuario)
         {
             if (!ModelState.IsValid)
@@ -219,7 +227,9 @@ namespace TFG.Controllers
                 return View(VMusuario);
             }
         }
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> EliminarUsuario(int id)
         {
             if (User.FindFirst("IdUsuario").Value == id.ToString())
@@ -378,6 +388,7 @@ namespace TFG.Controllers
             return View();
         }
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> PassForgoten(PassForgotenViewModel passforgotenvm)
         {
             var mensaje = "De existir una cuenta con el correo electronico: " + passforgotenvm.Correo + " se ha enviado un correo con instrucciones para recuperar su contraseña";
@@ -419,6 +430,7 @@ namespace TFG.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> RecuperarContrasena(RecuperarContraseñaViewModel recuperarContraseñaVM)
         {
             var usuario = await userManager.FindByEmailAsync(recuperarContraseñaVM.Correo);
@@ -455,6 +467,7 @@ namespace TFG.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarcarCompletadaConModelo([FromBody] ItemCheckRequest modelo)
         {
             var idusuario = int.Parse(User.FindFirst("IdUsuario").Value);
@@ -493,6 +506,7 @@ namespace TFG.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarcarCompletada(int juegoId, int misionId, bool check)
         {
             var idusuario = int.Parse(User.FindFirst("IdUsuario").Value);
@@ -512,6 +526,7 @@ namespace TFG.Controllers
 
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarcarItemCompletado(int juegoId, int itemId, bool check)
         {
             var idusuario = int.Parse(User.FindFirst("IdUsuario").Value);

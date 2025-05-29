@@ -12,6 +12,7 @@
     <p>@ViewData["mensaje"]</p>
 }
 <form asp-action="ModificarUsuario" method="post">
+    @Html.AntiForgeryToken()
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
     @* Campo oculto si necesitas el ID del usuario para la edición *@
@@ -115,7 +116,10 @@
     </div>
 
     <button type="submit" class="btn btn-primary">Guardar</button>
-    <button type="submit" class="btn btn-primary" asp-action="EliminarUsuario" asp-route-Id="@User.FindFirst("IdUsuario").Value">Eliminar Cuenta</button>
+    </form>
+<form asp-action="EliminarUsuario" asp-route-Id="@User.FindFirst("IdUsuario").Value" method="post">
+    @Html.AntiForgeryToken()
+    <button type="submit" class="btn btn-primary mt-3">Eliminar Cuenta</button>
 </form>
 
 @section Scripts {

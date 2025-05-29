@@ -11,6 +11,7 @@
 
 <div class="container mt-4">
     <form asp-action="CrearTruco" method="post">
+        @Html.AntiForgeryToken()
         <div class="form-group">
             <label asp-for="JuegoId"></label>
             <input asp-for="JuegoId" class="form-control" value="@Model.JuegoId" readonly />

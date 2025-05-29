@@ -11,6 +11,7 @@
         @if (User.IsInRole("Admin"))
         {
             <form method="post" asp-controller="Home" asp-action="ModificarElemento" asp-route-tipo="Mision" asp-route-idelemento=@Model.Id>
+                @Html.AntiForgeryToken()
                 <button type="submit" class="btn btn-outline-secondary btn-sm mt-2 mb-2 w-50">Modificar Mision: @Model.Nombre</button>
             </form>
         }
@@ -18,11 +19,13 @@
     @if (User.Identity.IsAuthenticated)
     {
         <form asp-action="MarcarCompletada" asp-controller="GestionUsuario">
+            @Html.AntiForgeryToken()
             <input type="hidden" name="id" value="@Model.Id" />
             <input type="hidden" name="tipo" value="Item" />
             @if (@Model.Completada)
             {
                 <form asp-controller="GestionUsuario" asp-action="MarcarCompletada" method="post">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" name="juegoId" value="@Model.idJuego" />
                     <input type="hidden" name="misionId" value="@Model.Id" />
                     <input type="hidden" name="check" value=true />
@@ -32,6 +35,7 @@
             else if (!(@Model.Completada))
             {
                 <form asp-controller="GestionUsuario" asp-action="MarcarCompletada" method="post">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" name="juegoId" value="@Model.idJuego" />
                     <input type="hidden" name="misionId" value="@Model.Id" />
                     <input type="hidden" name="check" value=false />

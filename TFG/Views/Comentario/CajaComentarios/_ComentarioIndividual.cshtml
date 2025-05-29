@@ -44,6 +44,7 @@
             </div>
 
             <div id="respuesta-form-@Model.Id" class="mt-2 d-none form-respuesta">
+                @Html.AntiForgeryToken()
                 <div class="form-group">
                     <textarea class="form-control mensaje-respuesta-textarea" rows="2" placeholder="Escribe tu respuesta aquí..."></textarea>
                 </div>

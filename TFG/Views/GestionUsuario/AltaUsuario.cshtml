@@ -12,6 +12,7 @@
 }
 
 <form asp-action="AltaUsuario" method="post">
+    @Html.AntiForgeryToken()
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
     <h3>Selecciona tu foto de perfil:</h3>

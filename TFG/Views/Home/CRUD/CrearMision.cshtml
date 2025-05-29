@@ -10,6 +10,7 @@
 
 <div class="container mt-4">
     <form asp-action="CrearMision" method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
         <div class="form-group">
             <label asp-for="idJuego"></label>
             <input asp-for="idJuego" class="form-control" value="@Model.idJuego" />
