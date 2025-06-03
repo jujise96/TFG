@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TFG.Data;
 
@@ -11,9 +12,11 @@ using TFG.Data;
 namespace TFG.Migrations
 {
     [DbContext(typeof(TFGContext))]
-    partial class TFGContextModelSnapshot : ModelSnapshot
+    [Migration("20250603173525_imagenesencomentarios")]
+    partial class imagenesencomentarios
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -19,9 +19,10 @@ public class HomeController : Controller
     private readonly SignInManager<Usuario> signinmanager;
 
     private readonly IWebHostEnvironment _webHostEnvironment;
+    private readonly IStorageService storageservice;
 
 
-    public HomeController(ILogger<HomeController> logger, IJuegoService juegoService, IMisionService misionService, IItemService itemService, ITrucoService trucoService, SignInManager<Usuario> signinmanager, UserManager<Usuario> userManager, IWebHostEnvironment webHostEnvironment)
+    public HomeController(ILogger<HomeController> logger, IJuegoService juegoService, IMisionService misionService, IItemService itemService, ITrucoService trucoService, SignInManager<Usuario> signinmanager, UserManager<Usuario> userManager, IWebHostEnvironment webHostEnvironment, IStorageService storageservice)
     {
         _logger = logger;
         this.juegoService = juegoService;
@@ -31,6 +32,7 @@ public class HomeController : Controller
         this.signinmanager = signinmanager;
         this.userManager = userManager;
         _webHostEnvironment = webHostEnvironment;
+        this.storageservice = storageservice;
     }
 
     public IActionResult Mensaje(string mensaje = "")
@@ -85,7 +87,7 @@ public class HomeController : Controller
         }
 
 
-            return View(elemento);
+        return View(elemento);
     }
 
     [AllowAnonymous]
@@ -244,24 +246,17 @@ public class HomeController : Controller
         // Manejar la subida de la imagen
         if (juegovm.ImagenFile != null)
         {
-            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "uploads");
-            // Asegúrate de que la carpeta exista
-            if (!Directory.Exists(uploadsFolder))
+            var nombrearchivo = $"{Guid.NewGuid()}_{juegovm.ImagenFile.FileName}";
+            var contentType = juegovm.ImagenFile.ContentType;
+            if(string.IsNullOrEmpty(contentType))
             {
-                Directory.CreateDirectory(uploadsFolder);
+                contentType = "application/octet-stream"; // Valor por defecto si no se proporciona
             }
-
-            // Generar un nombre único para el archivo para evitar colisiones
-            string uniqueFileName = Guid.NewGuid().ToString() + "_" + juegovm.ImagenFile.FileName;
-            string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            using (var stram = juegovm.ImagenFile.OpenReadStream())
             {
-                await juegovm.ImagenFile.CopyToAsync(fileStream);
+                var url = await storageservice.UploadFileAsync(stram, nombrearchivo, contentType);   
+                juegovm.Imagen = url; // Guardar la URL de la imagen en el modelo
             }
-
-            // Guardar la ruta relativa en la base de datos
-            juegovm.Imagen = "/images/uploads/" + uniqueFileName;
         }
 
 
@@ -287,26 +282,20 @@ public class HomeController : Controller
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> CrearMision(MisionViewModel misionvm)
     {
+        // Manejar la subida de la imagen
         if (misionvm.ImagenFile != null)
         {
-            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "uploads");
-            // Asegúrate de que la carpeta exista
-            if (!Directory.Exists(uploadsFolder))
+            var nombrearchivo = $"{Guid.NewGuid()}_{misionvm.ImagenFile.FileName}";
+            var contentType = misionvm.ImagenFile.ContentType;
+            if (string.IsNullOrEmpty(contentType))
             {
-                Directory.CreateDirectory(uploadsFolder);
+                contentType = "application/octet-stream"; // Valor por defecto si no se proporciona
             }
-
-            // Generar un nombre único para el archivo para evitar colisiones
-            string uniqueFileName = Guid.NewGuid().ToString() + "_" + misionvm.ImagenFile.FileName;
-            string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            using (var stram = misionvm.ImagenFile.OpenReadStream())
             {
-                await misionvm.ImagenFile.CopyToAsync(fileStream);
+                var url = await storageservice.UploadFileAsync(stram, nombrearchivo, contentType);
+                misionvm.Imagen = url; // Guardar la URL de la imagen en el modelo
             }
-
-            // Guardar la ruta relativa en la base de datos
-            misionvm.Imagen = "/images/uploads/" + uniqueFileName;
         }
 
         var mision = new Mision()
@@ -337,24 +326,17 @@ public class HomeController : Controller
         // Manejar la subida de la imagen
         if (itemvm.ImagenFile != null)
         {
-            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "uploads");
-            // Asegúrate de que la carpeta exista
-            if (!Directory.Exists(uploadsFolder))
+            var nombrearchivo = $"{Guid.NewGuid()}_{itemvm.ImagenFile.FileName}";
+            var contentType = itemvm.ImagenFile.ContentType;
+            if (string.IsNullOrEmpty(contentType))
             {
-                Directory.CreateDirectory(uploadsFolder);
+                contentType = "application/octet-stream"; // Valor por defecto si no se proporciona
             }
-
-            // Generar un nombre único para el archivo para evitar colisiones
-            string uniqueFileName = Guid.NewGuid().ToString() + "_" + itemvm.ImagenFile.FileName;
-            string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            using (var stram = itemvm.ImagenFile.OpenReadStream())
             {
-                await itemvm.ImagenFile.CopyToAsync(fileStream);
+                var url = await storageservice.UploadFileAsync(stram, nombrearchivo, contentType);
+                itemvm.Imagen = url; // Guardar la URL de la imagen en el modelo
             }
-
-            // Guardar la ruta relativa en la base de datos
-            itemvm.Imagen = "/images/uploads/" + uniqueFileName;
         }
 
         var item = new Item()
@@ -385,7 +367,7 @@ public class HomeController : Controller
     }
 
 
-    private bool EliminarImagenFisica(string? imageUrl)
+    private async Task<bool> EliminarImagenFisica(string imageUrl = "")
     {
         if (string.IsNullOrEmpty(imageUrl)) return true; // No hay imagen o es nula, no hay nada que eliminar
 
@@ -395,19 +377,11 @@ public class HomeController : Controller
 
         try
         {
-            if (System.IO.File.Exists(imagePath))
-            {
-                System.IO.File.Delete(imagePath);
-                Console.WriteLine($"Imagen eliminada exitosamente: {imagePath}"); // Para depuración
-                return true;
-            }
-            else
-            {
-                // La imagen no existe en la ruta física, esto puede ocurrir si la URL en DB
-                // ya no corresponde a un archivo real, pero aun así consideramos éxito para la eliminación de DB.
-                Console.WriteLine($"Advertencia: La imagen no se encontró en la ruta esperada: {imagePath}");
-                return true;
-            }
+            var uri = new Uri(imagePath);
+            var nombrearchivo = Path.GetFileName(uri.LocalPath);
+            await storageservice.DeleteFileAsync(nombrearchivo);
+            return true;
+
         }
         catch (Exception ex)
         {
@@ -435,7 +409,9 @@ public class HomeController : Controller
             {
                 if (urldeMision != null)
                 {
-                    System.IO.File.Delete("./wwwroot" + urldeMision);
+                    var uri = new Uri(urldeMision);
+                    var nombrearchivo = Path.GetFileName(uri.LocalPath);
+                    await storageservice.DeleteFileAsync(nombrearchivo);
                 }
                 return RedirectToAction("Index");
             }
@@ -452,7 +428,9 @@ public class HomeController : Controller
             {
                 if (urldeItem != null)
                 {
-                    System.IO.File.Delete("./wwwroot" + urldeItem);
+                    var uri = new Uri(urldeItem);
+                    var nombrearchivo = Path.GetFileName(uri.LocalPath);
+                    await storageservice.DeleteFileAsync(nombrearchivo);
                 }
 
                 return RedirectToAction("Index");
@@ -473,11 +451,13 @@ public class HomeController : Controller
             {
                 foreach (var imageUrl in todasLasImagenesHijas)
                 {
-                    EliminarImagenFisica(imageUrl);
+                    await EliminarImagenFisica(imageUrl);
                 }
                 if (urlJuego != null)
                 {
-                    System.IO.File.Delete("./wwwroot" + urlJuego);
+                    var uri = new Uri(urlJuego);
+                    var nombrearchivo = Path.GetFileName(uri.LocalPath);
+                    await storageservice.DeleteFileAsync(nombrearchivo);
                 }
 
                 return RedirectToAction("Index");
@@ -587,39 +567,23 @@ public class HomeController : Controller
             {
                 // Construye la ruta física de la imagen antigua en wwwroot
                 // Elimina el '/' inicial de la URL para Path.Combine
-                string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, juegovm.Imagen.TrimStart('/'));
-                if (System.IO.File.Exists(oldFilePath))
-                {
-                    System.IO.File.Delete(oldFilePath);
-                }
+                var uri = new Uri(juegovm.Imagen);
+                await storageservice.DeleteFileAsync(Path.GetFileName(uri.LocalPath));
             }
 
-            // Generar un nombre único para el nuevo archivo
-            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "uploads");
-            // Asegúrate de que la carpeta exista, créala si no
-            if (!Directory.Exists(uploadsFolder))
+            // Manejar la subida de la imagen
+            var nombrearchivo = $"{Guid.NewGuid()}_{juegovm.ImagenFile.FileName}";
+            var contentType = juegovm.ImagenFile.ContentType;
+            if (string.IsNullOrEmpty(contentType))
             {
-                Directory.CreateDirectory(uploadsFolder);
+                contentType = "application/octet-stream"; // Valor por defecto si no se proporciona
             }
-
-            string uniqueFileName = Guid.NewGuid().ToString() + "_" + juegovm.ImagenFile.FileName;
-            string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-            // Guardar el nuevo archivo en el servidor
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            using (var stram = juegovm.ImagenFile.OpenReadStream())
             {
-                await juegovm.ImagenFile.CopyToAsync(fileStream);
+                var url = await storageservice.UploadFileAsync(stram, nombrearchivo, contentType);
+                juegovm.Imagen = url; // Guardar la URL de la imagen en el modelo
             }
-
-            // Actualizar la propiedad Imagen del modelo existente con la nueva URL
-            juegovm.Imagen = "/images/uploads/" + uniqueFileName;
         }
-        else // Si no se ha subido un nuevo archivo
-        {
-            // Mantener la imagen existente. La URL de la imagen actual se envía desde el campo hidden en la vista
-            juegovm.Imagen = juegovm.Imagen;
-        }
-
 
         // 4. Llamar al servicio para actualizar el juego en la base de datos
         var juego = new Juego()
@@ -643,7 +607,7 @@ public class HomeController : Controller
         }
     }
 
-    [HttpPost]
+
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ModificarMision(MisionViewModel misionvm)
     {
@@ -655,133 +619,134 @@ public class HomeController : Controller
             {
                 // Construye la ruta física de la imagen antigua en wwwroot
                 // Elimina el '/' inicial de la URL para Path.Combine
-                string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, misionvm.Imagen.TrimStart('/'));
-                if (System.IO.File.Exists(oldFilePath))
-                {
-                    System.IO.File.Delete(oldFilePath);
-                }
+                var uri = new Uri(misionvm.Imagen);
+                await storageservice.DeleteFileAsync(Path.GetFileName(uri.LocalPath));
             }
 
-            // Generar un nombre único para el nuevo archivo
-            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "uploads");
-            // Asegúrate de que la carpeta exista, créala si no
-            if (!Directory.Exists(uploadsFolder))
+            // Manejar la subida de la imagen
+            var nombrearchivo = $"{Guid.NewGuid()}_{misionvm.ImagenFile.FileName}";
+            var contentType = misionvm.ImagenFile.ContentType;
+            if (string.IsNullOrEmpty(contentType))
             {
-                Directory.CreateDirectory(uploadsFolder);
+                contentType = "application/octet-stream"; // Valor por defecto si no se proporciona
             }
-
-            string uniqueFileName = Guid.NewGuid().ToString() + "_" + misionvm.ImagenFile.FileName;
-            string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-            // Guardar el nuevo archivo en el servidor
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            using (var stram = misionvm.ImagenFile.OpenReadStream())
             {
-                await misionvm.ImagenFile.CopyToAsync(fileStream);
+                var url = await storageservice.UploadFileAsync(stram, nombrearchivo, contentType);
+                misionvm.Imagen = url; // Guardar la URL de la imagen en el modelo
             }
-
-            // Actualizar la propiedad Imagen del modelo existente con la nueva URL
-            misionvm.Imagen = "/images/uploads/" + uniqueFileName;
-        }
-        else // Si no se ha subido un nuevo archivo
-        {
-            // Mantener la imagen existente. La URL de la imagen actual se envía desde el campo hidden en la vista
-            misionvm.Imagen = misionvm.Imagen;
         }
 
+        // 4. Llamar al servicio para actualizar el juego en la base de datos
         var mision = new Mision()
         {
             Id = misionvm.Id,
-            JuegoId = misionvm.idJuego,
             IdElem = misionvm.IdElem,
             Nombre = misionvm.Nombre,
             Descripcion = misionvm.Descripcion,
             Imagen = misionvm.Imagen,
-            StartTrigger = misionvm.StartTrigger,
             Bugs = misionvm.Bugs,
-            TipoQuest = misionvm.TipoQuest
+            StartTrigger = misionvm.StartTrigger,
+            TipoQuest = misionvm.TipoQuest,
+            JuegoId = misionvm.idJuego
 
         };
-        if (await misionService.ModificarMision(mision))
+        if (await misionService.ModificarMision(mision)) // O el nombre del método de tu servicio para actualizar
         {
             return RedirectToAction("Mensaje", new { mensaje = "Se ha modificado la mision" });
         }
-        return RedirectToAction("Mensaje", new { mensaje = "Error al intentar modificar la mision" });
+        else
+        {
+            // Si el servicio devuelve false, hubo un error en la BD
+            ModelState.AddModelError("", "Error al intentar modificar la mision en la base de datos.");
+            return View(misionvm); // Vuelve a la vista con el ViewModel y el error
+        }
     }
 
-    [HttpPost]
+
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> ModificarItem(ItemViewModel itemvm)
+    public async Task<IActionResult> ModificarItem(ItemViewModel Itemvm)
     {
         // Manejar la subida de la nueva imagen
-        if (itemvm.ImagenFile != null) // Si el usuario ha seleccionado un nuevo archivo de imagen
+        if (Itemvm.ImagenFile != null) // Si el usuario ha seleccionado un nuevo archivo de imagen
         {
             // Opcional: Eliminar la imagen antigua si existe en el servidor
-            if (!string.IsNullOrEmpty(itemvm.Imagen))
+            if (!string.IsNullOrEmpty(Itemvm.Imagen))
             {
                 // Construye la ruta física de la imagen antigua en wwwroot
                 // Elimina el '/' inicial de la URL para Path.Combine
-                string oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, itemvm.Imagen.TrimStart('/'));
-                if (System.IO.File.Exists(oldFilePath))
-                {
-                    System.IO.File.Delete(oldFilePath);
-                }
+                var uri = new Uri(Itemvm.Imagen);
+                await storageservice.DeleteFileAsync(Path.GetFileName(uri.LocalPath));
             }
 
-            // Generar un nombre único para el nuevo archivo
-            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "uploads");
-            // Asegúrate de que la carpeta exista, créala si no
-            if (!Directory.Exists(uploadsFolder))
+            // Manejar la subida de la imagen
+            var nombrearchivo = $"{Guid.NewGuid()}_{Itemvm.ImagenFile.FileName}";
+            var contentType = Itemvm.ImagenFile.ContentType;
+            if (string.IsNullOrEmpty(contentType))
             {
-                Directory.CreateDirectory(uploadsFolder);
+                contentType = "application/octet-stream"; // Valor por defecto si no se proporciona
             }
-
-            string uniqueFileName = Guid.NewGuid().ToString() + "_" + itemvm.ImagenFile.FileName;
-            string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-            // Guardar el nuevo archivo en el servidor
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            using (var stram = Itemvm.ImagenFile.OpenReadStream())
             {
-                await itemvm.ImagenFile.CopyToAsync(fileStream);
+                var url = await storageservice.UploadFileAsync(stram, nombrearchivo, contentType);
+                Itemvm.Imagen = url; // Guardar la URL de la imagen en el modelo
             }
-
-            // Actualizar la propiedad Imagen del modelo existente con la nueva URL
-            itemvm.Imagen = "/images/uploads/" + uniqueFileName;
-        }
-        else // Si no se ha subido un nuevo archivo
-        {
-            // Mantener la imagen existente. La URL de la imagen actual se envía desde el campo hidden en la vista
-            itemvm.Imagen = itemvm.Imagen;
         }
 
-
-        var item = new Item()
+        // 4. Llamar al servicio para actualizar el juego en la base de datos
+        var items = new Item()
         {
-            Id = itemvm.Id,
-            JuegoId = itemvm.JuegoId,
-            IdElem = itemvm.IdElem,
-            Nombre = itemvm.Nombre,
-            Descripcion = itemvm.Descripcion,
-            Imagen = itemvm.Imagen,
-            Bugs = itemvm.Bugs,
-            TipoItem = itemvm.TipoItem
+            Id = Itemvm.Id,
+            IdElem = Itemvm.IdElem,
+            Nombre = Itemvm.Nombre,
+            Descripcion = Itemvm.Descripcion,
+            Imagen = Itemvm.Imagen,
+            Bugs = Itemvm.Bugs,
+            JuegoId = Itemvm.JuegoId,
+            TipoItem = Itemvm.TipoItem
+
         };
-        if (await itemService.ModificarItem(item))
+        if (await itemService.ModificarItem(items)) // O el nombre del método de tu servicio para actualizar
         {
-            return RedirectToAction("Mensaje", new { mensaje = "Se ha modificado el item" });
+            return RedirectToAction("Mensaje", new { mensaje = "Se ha modificado la mision" });
         }
-        return RedirectToAction("Mensaje", new { mensaje = "Error al intentar modificar el item" });
+        else
+        {
+            // Si el servicio devuelve false, hubo un error en la BD
+            ModelState.AddModelError("", "Error al intentar modificar la mision en la base de datos.");
+            return View(Itemvm); // Vuelve a la vista con el ViewModel y el error
+        }
     }
 
-    [HttpPost]
+
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> ModificarTruco(Truco truco)
+    public async Task<IActionResult> ModificarTruco(Truco trucovm)
     {
-        if (await trucoService.ModificarTruco(truco))
+        
+        var truco = new Truco()
         {
-            return RedirectToAction("Mensaje", new { mensaje = "Se ha modificado el truco" });
+            Id = trucovm.Id,
+            IdElem = trucovm.IdElem,
+            Nombre = trucovm.Nombre,
+            Descripcion = trucovm.Descripcion,
+            JuegoId = trucovm.JuegoId,
+            Trucos = trucovm.Trucos
+
+        };
+        if (await trucoService.ModificarTruco(truco)) // O el nombre del método de tu servicio para actualizar
+        {
+            return RedirectToAction("Mensaje", new { mensaje = "Se ha modificado la mision" });
         }
-        return RedirectToAction("Mensaje", new { mensaje = "Error al intentar modificar el truco" });
+        else
+        {
+            // Si el servicio devuelve false, hubo un error en la BD
+            ModelState.AddModelError("", "Error al intentar modificar la mision en la base de datos.");
+            return View(truco); // Vuelve a la vista con el ViewModel y el error
+        }
     }
+
+
+
 
     public IActionResult Privacy()
     {

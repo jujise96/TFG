@@ -9,6 +9,7 @@ namespace TFG.Models
     {
         public int Id { get; set; }
         public int? JuegoId { get; set; }
+        public string Imagen { get; set; }
 
         [Required]
         public TipoEntidad TipoEntidad { get; set; }
@@ -22,6 +23,7 @@ namespace TFG.Models
         [MaxLength(1000)] // Ejemplo de longitud máxima para el mensaje
         [AntiInjeciones]
         public string Mensaje { get; set; }
+        
 
         public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
 

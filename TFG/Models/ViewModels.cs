@@ -246,6 +246,7 @@ namespace TFG.Models
         public string Mensaje { get; set; }
         public DateTime FechaCreacion { get; set; }
         public int UserId { get; set; }
+        public string Imagen { get; set; }
         [AntiInjeciones]
         public string NombreUsuario { get; set; } // Nueva propiedad
         public int likes { get; set; } = 0; // Nueva propiedad para contar likes
