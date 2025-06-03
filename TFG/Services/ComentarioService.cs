@@ -14,6 +14,7 @@ namespace TFG.Services
         Task<bool> EliminarComentario(int idcomentario);
         public Task<bool> LikeComentario(int idusurio, int idcomentario, bool like);
         Task<IEnumerable<RankingsViewModel>> ObtenerRankingsUsuariosAsync();
+        Task<List<string>> ObtenerUrlsImagenesHijasDeComentario(int idcomentario);
 
     }
 
@@ -55,6 +56,11 @@ namespace TFG.Services
         public async Task<IEnumerable<RankingsViewModel>> ObtenerRankingsUsuariosAsync()
         {
             return await _comentarioRepository.ObtenerRankingsUsuariosAsync();
+        }
+
+        public async Task<List<string>> ObtenerUrlsImagenesHijasDeComentario(int idcomentario)
+        {
+            return await _comentarioRepository.ObtenerUrlsImagenesHijasDeComentario(idcomentario);
         }
     }
 }

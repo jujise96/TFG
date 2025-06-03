@@ -14,6 +14,7 @@ namespace TFG.Repositories
         public Task<bool> EliminarComentario(int id);
         public Task<bool> LikeComentario(int idusurio, int idcomentario, bool like);
         Task<IEnumerable<RankingsViewModel>> ObtenerRankingsUsuariosAsync();
+        Task<List<string>> ObtenerUrlsImagenesHijasDeComentario(int idcomentario);
     }
 
     public class RepositorioComentario : IRepositorioComentario
@@ -38,6 +39,7 @@ namespace TFG.Repositories
                    c.JuegoId AS JuegoId,       -- Asegurarse de seleccionar si es necesaria
                    c.TipoEntidad AS TipoEntidad, -- Asegurarse de seleccionar si es necesaria
                    c.EntidadId AS EntidadId,   -- Asegurarse de seleccionar si es necesaria
+                    c.Imagen AS Imagen, -- Asegúrate de incluir la imagen si es necesaria
                    -- Conteo de likes
                    ISNULL(SUM(CASE WHEN ucl.[Like] = 1 THEN 1 ELSE 0 END), 0) AS likes,
                    -- Conteo de dislikes
@@ -47,7 +49,7 @@ namespace TFG.Repositories
             LEFT JOIN UsuarioComentarioLike ucl ON c.Id = ucl.ComentarioId
             WHERE c.Id = @Id
             GROUP BY c.Id, c.Mensaje, c.FechaCreacion, c.UserId, u.NombreUsuario, c.ComentarioPadreId,
-                     c.JuegoId, c.TipoEntidad, c.EntidadId -- Todas las columnas no agregadas deben estar aquí
+                     c.JuegoId, c.TipoEntidad, c.EntidadId, c.Imagen -- Todas las columnas no agregadas deben estar aquí
             ORDER BY c.FechaCreacion ASC",
         new { Id = id });
         }
@@ -66,6 +68,7 @@ namespace TFG.Repositories
                c.JuegoId AS JuegoId,
                c.TipoEntidad AS TipoEntidad,
                c.EntidadId AS EntidadId,
+               c.Imagen AS Imagen, -- Asegúrate de incluir la imagen si es necesaria
                ISNULL(SUM(CASE WHEN ucl_total.[Like] = 1 THEN 1 ELSE 0 END), 0) AS likes,
                ISNULL(SUM(CASE WHEN ucl_total.[Like] = 0 THEN 1 ELSE 0 END), 0) AS dislikes,
                -- Obtener la reacción del usuario actual
@@ -76,7 +79,7 @@ namespace TFG.Repositories
         LEFT JOIN UsuarioComentarioLike ucl_user ON c.Id = ucl_user.ComentarioId AND ucl_user.UsuarioId = @CurrentUserId
         WHERE c.TipoEntidad = @TipoEntidad AND c.EntidadId = @EntidadId
         GROUP BY c.Id, c.Mensaje, c.FechaCreacion, c.UserId, u.NombreUsuario, c.ComentarioPadreId,
-                 c.JuegoId, c.TipoEntidad, c.EntidadId, ucl_user.[Like] -- ucl_user.[Like] también en GROUP BY
+                 c.JuegoId, c.TipoEntidad, c.EntidadId, c.Imagen, ucl_user.[Like] -- ucl_user.[Like] también en GROUP BY
         ORDER BY c.FechaCreacion ASC";
 
             // Pasa el userId a la consulta si está disponible
@@ -94,8 +97,8 @@ namespace TFG.Repositories
             try
             {
                 await connection.ExecuteAsync(@"
-                    INSERT INTO Comentario (JuegoId, TipoEntidad, EntidadId, ComentarioPadreId, Mensaje, FechaCreacion, UserId)
-                    VALUES (@JuegoId, @TipoEntidad, @EntidadId, @ComentarioPadreId, @Mensaje, @FechaCreacion, @UserId)",
+                    INSERT INTO Comentario (JuegoId, TipoEntidad, EntidadId, ComentarioPadreId, Mensaje, FechaCreacion, UserId, Imagen)
+                    VALUES (@JuegoId, @TipoEntidad, @EntidadId, @ComentarioPadreId, @Mensaje, @FechaCreacion, @UserId, @Imagen)",
                     comentario);
                 return true;
             }
@@ -243,6 +246,40 @@ namespace TFG.Repositories
             {
                 Console.WriteLine($"Error al obtener los rankings de usuarios: {ex.Message}");
                 return Enumerable.Empty<RankingsViewModel>(); // Retorna una lista vacía en caso de error
+            }
+        }
+
+        public async Task<List<string>> ObtenerUrlsImagenesHijasDeComentario(int idcomentario)
+        {
+            string sqlQuery = @"
+                WITH ComentariosDescendientes AS (
+                    -- Ancla: Selecciona el comentario inicial (el que tiene idcomentario)
+                    SELECT Id, Imagen
+                    FROM Comentario
+                    WHERE Id = @idcomentario
+                    UNION ALL
+                    -- Recursivo: Selecciona los hijos de los comentarios encontrados en ComentariosDescendientes
+                    SELECT c.Id, c.Imagen
+                    FROM Comentario c
+                    INNER JOIN ComentariosDescendientes cd ON c.ComentarioPadreId = cd.Id
+                )
+                SELECT Imagen
+                FROM ComentariosDescendientes
+                WHERE Imagen IS NOT NULL AND Imagen != '';"; // Filtra solo las URLs de imagen válidas
+
+            using (var connection = new SqlConnection(connectionString))
+            {
+                await connection.OpenAsync();
+
+                // Dapper ejecutará la consulta combinada y mapeará todos los resultados
+                // a una lista de strings (las URLs de las imágenes).
+                var imageUrls = await connection.QueryAsync<string>(
+                    sqlQuery,
+                    new { idcomentario = idcomentario } // Pasamos el parámetro para la consulta
+                );
+
+                // Convertimos el IEnumerable<string> a List<string> y lo devolvemos
+                return imageUrls.ToList();
             }
         }
     }

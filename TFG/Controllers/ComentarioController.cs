@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TFG.Models;
@@ -21,9 +22,11 @@ public class ComentarioController : Controller
     private readonly SignInManager<Usuario> signinmanager;
     private readonly IComentarioService _comentarioService;
     private readonly IModeracionService _moderacionService;
+    private readonly IWebHostEnvironment _webHostEnvironment;
+    private readonly IStorageService storageservice;
 
 
-    public ComentarioController(ILogger<HomeController> logger, IJuegoService juegoService, IMisionService misionService, IItemService itemService, ITrucoService trucoService, SignInManager<Usuario> signinmanager, UserManager<Usuario> userManager, IComentarioService comentarioService, IModeracionService moderacionService)
+    public ComentarioController(ILogger<HomeController> logger, IJuegoService juegoService, IMisionService misionService, IItemService itemService, ITrucoService trucoService, SignInManager<Usuario> signinmanager, UserManager<Usuario> userManager, IComentarioService comentarioService, IModeracionService moderacionService, IStorageService storageservice, IWebHostEnvironment webHostEnvironment)
     {
         _logger = logger;
         this.juegoService = juegoService;
@@ -34,6 +37,8 @@ public class ComentarioController : Controller
         this.userManager = userManager;
         _comentarioService = comentarioService;
         _moderacionService = moderacionService;
+        this.storageservice = storageservice;
+        _webHostEnvironment = webHostEnvironment;
     }
 
     public IActionResult Mensaje(string mensaje = "")
@@ -108,7 +113,8 @@ public class ComentarioController : Controller
             ComentarioPadreId = comentario.ComentarioPadreId,
             Respuestas = new List<ComentarioViewModel>(),
             likes = comentario.likes,
-            dislikes = comentario.dislikes
+            dislikes = comentario.dislikes,
+            Imagen = comentario.Imagen
         };
 
 
@@ -124,8 +130,12 @@ public class ComentarioController : Controller
     [HttpPost]
     [Authorize]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CrearComentario(string tipoEntidad, int entidadId, string mensaje, int? comentarioPadreId, int juegoId)
+    public async Task<IActionResult> CrearComentario(string tipoEntidad, int entidadId, string mensaje, int? comentarioPadreId, int juegoId, IFormFile imagen)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest("Datos del comentario no válidos.");
+        }
         if (!Enum.TryParse<TipoEntidad>(tipoEntidad, true, out var tipo))
         {
             return BadRequest("Tipo de entidad no válido.");
@@ -151,6 +161,23 @@ public class ComentarioController : Controller
             userId = usuario.Id;
         }
 
+        string url = ""; // Inicializa la URL de la imagen como vacía
+        // Manejar la subida de la imagen
+        if (imagen != null)
+        {
+            var nombrearchivo = $"{Guid.NewGuid()}_{imagen.FileName}";
+            var contentType = imagen.ContentType;
+            if (string.IsNullOrEmpty(contentType))
+            {
+                contentType = "application/octet-stream"; // Valor por defecto si no se proporciona
+            }
+            using (var stram = imagen.OpenReadStream())
+            {
+                url = await storageservice.UploadFileAsync(stram, nombrearchivo, contentType);
+            }
+        }
+
+
         var nuevoComentario = new ComentarioViewModel
         {
             JuegoId = juegoId, // Asigna el ID del juego correspondiente
@@ -160,9 +187,11 @@ public class ComentarioController : Controller
             ComentarioPadreId = comentarioPadreId,
             FechaCreacion = DateTime.UtcNow,
             UserId = userId,
-            NombreUsuario = usuario.NombreUsuario
+            NombreUsuario = usuario.NombreUsuario,
+            Imagen = url// Asigna la imagen del usuario
 
         };
+
 
         bool resultado = await _comentarioService.GuardarComentario(nuevoComentario);
 
@@ -205,10 +234,30 @@ public class ComentarioController : Controller
         {
             try
             {
+                var comentarioaux = await _comentarioService.ObtenerComentariosPorId(comentarioId);
+                var todasLasImagenesHijas = await _comentarioService.ObtenerUrlsImagenesHijasDeComentario(comentarioId);
                 if (await _comentarioService.EliminarComentario(comentario.Id))
                 {
-                    // *** CAMBIO AQUÍ: Devuelve un simple OK (status 200) ***
+
+                    var urlJuego = comentarioaux.Imagen;
+
+
+                    foreach (var imageUrl in todasLasImagenesHijas)
+                    {
+                        if (!string.IsNullOrEmpty(imageUrl))
+                        {
+                            await EliminarImagenFisica(imageUrl);
+                        }
+                    }
+                    if (!string.IsNullOrEmpty(urlJuego))
+                    {
+                        var uri = new Uri(urlJuego);
+                        var nombrearchivo = Path.GetFileName(uri.LocalPath);
+                        await storageservice.DeleteFileAsync(nombrearchivo);
+                    }
+
                     return Ok();
+
                 }
                 else
                 {
@@ -253,7 +302,7 @@ public class ComentarioController : Controller
             {
                 // Devuelve un JSON con los conteos actualizados y la reacción del usuario.
                 // Si userReaction es null, envíalo como "null" o un valor apropiado para JS.
-                
+
                 return Ok(new
                 {
                     success = true,
@@ -281,5 +330,32 @@ public class ComentarioController : Controller
         var rankings = await _comentarioService.ObtenerRankingsUsuariosAsync();
         return View(rankings);
     }
+
+    private async Task<bool> EliminarImagenFisica(string imageUrl = "")
+    {
+        if (string.IsNullOrEmpty(imageUrl)) return true; // No hay imagen o es nula, no hay nada que eliminar
+
+        // Construye la ruta física completa de la imagen en wwwroot
+        // El .TrimStart('/') es importante para manejar URLs que empiezan con '/'
+        string imagePath = Path.Combine(_webHostEnvironment.WebRootPath, imageUrl.TrimStart('/'));
+
+        try
+        {
+            var uri = new Uri(imagePath);
+            var nombrearchivo = Path.GetFileName(uri.LocalPath);
+            await storageservice.DeleteFileAsync(nombrearchivo);
+            return true;
+
+        }
+        catch (Exception ex)
+        {
+            // Registra el error para depuración
+            _logger.LogError(ex, $"Error al eliminar la imagen física '{imagePath}'.");
+            // Podrías decidir si esto debería impedir la eliminación de la DB o no.
+            // Por ahora, si falla la eliminación física, no la impedimos.
+            return false; // Retorna false si hubo un error al eliminar físicamente
+        }
+    }
+
 
 }

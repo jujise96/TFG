@@ -229,6 +229,8 @@ namespace TFG.Models
         [AntiInjeciones]
         public string TipoEntidad { get; set; }
         public int EntidadId { get; set; }
+        public string Imagen { get; set; }
+        public IFormFile? ImagenFile { get; set; } // New property for image upload
         public List<ComentarioViewModel> Comentarios { get; set; }
         public int TotalComentarios { get; set; }
         public int PaginaActual { get; set; }
@@ -247,6 +249,7 @@ namespace TFG.Models
         public DateTime FechaCreacion { get; set; }
         public int UserId { get; set; }
         public string Imagen { get; set; }
+        public IFormFile? ImagenFile { get; set; } // New property for image upload
         [AntiInjeciones]
         public string NombreUsuario { get; set; } // Nueva propiedad
         public int likes { get; set; } = 0; // Nueva propiedad para contar likes

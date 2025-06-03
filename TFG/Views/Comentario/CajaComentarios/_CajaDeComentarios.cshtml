@@ -26,10 +26,14 @@
         @if (User.Identity.IsAuthenticated)
         {
             <h4>Dejar un comentario</h4>
-            <form class="form-nuevo-comentario" data-tipo-entidad="@Model.TipoEntidad" data-entidad-id="@Model.EntidadId">
+            <form class="form-nuevo-comentario" data-tipo-entidad="@Model.TipoEntidad" data-entidad-id="@Model.EntidadId" enctype="multipart/form-data">
                 @Html.AntiForgeryToken()
                 <div class="form-group">
                     <textarea class="form-control mensaje-nuevo-comentario" rows="3" placeholder="Escribe tu comentario aquí..."></textarea>
+                </div>
+                <div class="form-group mt-2">
+                    <label for="imagenComentario">Adjuntar imagen (opcional):</label>
+                    <input type="file" class="form-control-file imagen-nuevo-comentario" id="imagenComentario" name="imagen" accept="image/*">
                 </div>
                 <div class="mensaje-respuesta-comentario mt-2"></div>
                 <button type="button" class="btn btn-primary btn-enviar-nuevo-comentario">Enviar comentario</button>

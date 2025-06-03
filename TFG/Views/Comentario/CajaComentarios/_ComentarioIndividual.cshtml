@@ -10,6 +10,10 @@
 
         @if (User.Identity.IsAuthenticated)
         {
+            @if (!string.IsNullOrEmpty(Model.Imagen))
+            {
+                <img src="@Model.Imagen" alt="Imagen del comentario" class="img-fluid mb-2" style="max-width: 200px; height: auto;" />
+            }
             <div class="d-flex align-items-center gap-2 mb-2">
                 @{
                     // Determina las clases CSS para el like y dislike basado en la reacción del usuario
@@ -47,6 +51,10 @@
                 @Html.AntiForgeryToken()
                 <div class="form-group">
                     <textarea class="form-control mensaje-respuesta-textarea" rows="2" placeholder="Escribe tu respuesta aquí..."></textarea>
+                </div>
+                <div class="form-group mt-2">
+                    <label for="imagenComentario">Adjuntar imagen (opcional):</label>
+                    <input type="file" class="form-control-file imagen-respuesta mb-2 mt-2" id="imagenComentario" name="imagen" accept="image/*">
                 </div>
                 <button class="btn btn-sm btn-primary btn-enviar-respuesta" data-comentario-padre-id="@Model.Id">Enviar respuesta</button>
                 <button class="btn btn-sm btn-secondary btn-cancelar-respuesta">Cancelar</button>

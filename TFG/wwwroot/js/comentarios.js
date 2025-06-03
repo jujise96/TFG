@@ -98,12 +98,14 @@
             if (target.classList.contains('btn-enviar-nuevo-comentario')) {
                 const form = target.closest('.form-nuevo-comentario');
                 const mensajeTextarea = form.querySelector('.mensaje-nuevo-comentario');
+                const imagen = form.querySelector('.imagen-nuevo-comentario'); // Get the image input
                 const mensajeRespuestaDiv = form.querySelector('.mensaje-respuesta-comentario');
                 const parentContainer = target.closest('[data-entidad-juegoid]');
 
                 const mensaje = mensajeTextarea.value.trim();
                 const currentTipoEntidad = form.dataset.tipoEntidad;
                 const currentEntidadId = form.dataset.entidadId;
+                const imagenFile = imagen.files[0]; // Get the selected file
 
                 let juegoIdEnviar = '';
                 if (currentTipoEntidad === 'Juego') {
@@ -116,8 +118,8 @@
                     }
                 }
 
-                if (mensaje === "") {
-                    mostrarAlerta(mensajeRespuestaDiv, 'Por favor, escribe un comentario.', 'warning');
+                if (mensaje === "" && !imagenFile) { // Allow empty message if there's an image
+                    mostrarAlerta(mensajeRespuestaDiv, 'Por favor, escribe un comentario o adjunta una imagen.', 'warning');
                     return;
                 }
 
@@ -126,33 +128,41 @@
                     mostrarAlerta(mensajeRespuestaDiv, 'Error de seguridad: No se pudo obtener el token de verificación.', 'danger');
                     return;
                 }
+                const formData = new FormData();
+                formData.append('__RequestVerificationToken', antiForgeryToken);
+                formData.append('TipoEntidad', currentTipoEntidad);
+                formData.append('EntidadId', currentEntidadId);
+                formData.append('Mensaje', mensaje);
+                formData.append('JuegoId', juegoIdEnviar);
+                if (imagenFile) {
+                    formData.append('imagen', imagenFile);
+                }
 
                 try {
                     const response = await fetch('/Comentario/CrearComentario', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'RequestVerificationToken': antiForgeryToken
-                        },
-                        body: `tipoEntidad=${currentTipoEntidad}&entidadId=${currentEntidadId}&mensaje=${encodeURIComponent(mensaje)}&comentarioPadreId=&juegoId=${juegoIdEnviar}`
+                        body: formData // Send FormData directly
+                        // Do NOT set 'Content-Type' header here. The browser will set it automatically
+                        // with the correct 'multipart/form-data' boundary.
                     });
 
                     if (response.ok) {
                         mensajeTextarea.value = "";
-                        mostrarAlerta(mensajeRespuestaDiv, 'Comentario enviado.', 'success');
+                        imagen.value = ""; // Clear the file input
+                        mostrarAlerta(mensajeRespuestaDiv, 'Comentario publicado exitosamente.', 'success');
                         await cargarComentarios(currentTipoEntidad, currentEntidadId, comentariosWrapper);
                     } else {
                         const errorText = await response.text();
                         console.error('Error al enviar el comentario:', response.status, response.statusText, errorText);
-                        if (response.status === 400) {
-                            mostrarAlerta(mensajeRespuestaDiv, `Error: ${errorText}`, 'danger');
+                        if (response.status === 401) {
+                            mostrarAlerta(mensajeRespuestaDiv, 'Debes iniciar sesión para publicar un comentario.', 'danger');
                         } else {
-                            mostrarAlerta(mensajeRespuestaDiv, `Error al enviar el comentario: ${errorText || 'Inténtalo de nuevo.'}`, 'danger');
+                            mostrarAlerta(mensajeRespuestaDiv, `Error al publicar el comentario: ${errorText || 'Inténtalo de nuevo.'}`, 'danger');
                         }
                     }
                 } catch (error) {
-                    console.error('Error de red o procesamiento al enviar comentario:', error);
-                    mostrarAlerta(mensajeRespuestaDiv, 'Ocurrió un error inesperado al enviar el comentario.', 'danger');
+                    console.error('Error de red o procesamiento al enviar el comentario:', error);
+                    mostrarAlerta(mensajeRespuestaDiv, 'Ocurrió un error inesperado al publicar el comentario.', 'danger');
                 }
             }
 
@@ -182,32 +192,40 @@
                 }
             }
 
+
             // --- Botón Enviar Respuesta ---
             if (target.classList.contains('btn-enviar-respuesta')) {
+                debugger;
+                const form = target.closest('.form-respuesta');
                 const padreId = target.dataset.comentarioPadreId;
                 const respuestaForm = target.closest('.form-respuesta');
                 const mensajeTextarea = respuestaForm.querySelector('.mensaje-respuesta-textarea');
                 const mensajeRespuestaDiv = respuestaForm.querySelector('.mensaje-respuesta-alerta');
-                const comentarioIndividual = target.closest('.comentario-individual');
-
+                const imagenInput = form.querySelector('.imagen-respuesta'); // Get the image input for replies
+                const mensajeAlertaDiv = form.querySelector('.mensaje-respuesta-alerta');
+                const comentarioPadreId = target.dataset.comentarioPadreId;
+                const comentarioIndividual = target.closest('.comentario-individual'); // Get the parent comment element
                 const currentTipoEntidad = comentarioIndividual.dataset.tipoEntidad;
                 const currentEntidadId = comentarioIndividual.dataset.entidadId;
-
                 const mensaje = mensajeTextarea.value.trim();
-
+                var imagenFile = null;
+                if (imagenInput) {
+                    imagenFile = imagenInput.files[0]; // Get the selected file for reply
+                }
                 let juegoIdEnviar = '';
                 if (currentTipoEntidad === 'Juego') {
                     juegoIdEnviar = currentEntidadId;
                 } else {
-                    if (comentariosWrapper && comentariosWrapper.dataset.entidadJuegoid) {
-                        juegoIdEnviar = comentariosWrapper.dataset.entidadJuegoid;
+                    const mainComentariosWrapper = document.getElementById(`seccion-de-comentarios-${currentTipoEntidad}-${currentEntidadId}`);
+                    if (mainComentariosWrapper && mainComentariosWrapper.dataset.entidadJuegoid) {
+                        juegoIdEnviar = mainComentariosWrapper.dataset.entidadJuegoid;
                     } else {
-                        console.warn(`No se encontró data-entidad-JuegoId para la entidad ${currentTipoEntidad} con ID ${currentEntidadId}.`);
+                        console.warn(`No se encontró data-entidad-JuegoId para la entidad ${currentTipoEntidad} con ID ${currentEntidadId} al responder.`);
                     }
                 }
 
-                if (mensaje === "") {
-                    mostrarAlerta(mensajeRespuestaDiv, 'Por favor, escribe tu respuesta.', 'warning');
+                if (mensaje === "" && !imagenFile) {
+                    mostrarAlerta(mensajeRespuestaDiv, 'Por favor, escribe una respuesta o adjunta una imagen.', 'warning');
                     return;
                 }
 
@@ -217,31 +235,41 @@
                     return;
                 }
 
+                const formData = new FormData();
+                formData.append('__RequestVerificationToken', antiForgeryToken);
+                formData.append('TipoEntidad', currentTipoEntidad);
+                formData.append('EntidadId', currentEntidadId);
+                formData.append('Mensaje', mensaje);
+                formData.append('ComentarioPadreId', comentarioPadreId);
+                formData.append('JuegoId', juegoIdEnviar);
+                if (imagenFile) {
+                    formData.append('imagen', imagenFile);
+                }
+
                 try {
                     const response = await fetch('/Comentario/CrearComentario', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'RequestVerificationToken': antiForgeryToken
-                        },
-                        body: `tipoEntidad=${currentTipoEntidad}&entidadId=${currentEntidadId}&mensaje=${encodeURIComponent(mensaje)}&comentarioPadreId=${padreId}&juegoId=${juegoIdEnviar}`
+                        body: formData // Send FormData directly
                     });
 
                     if (response.ok) {
                         mensajeTextarea.value = "";
-                        mostrarAlerta(mensajeRespuestaDiv, 'Respuesta enviada.', 'success');
+                        imagenInput.value = ""; // Clear the file input
+                        form.classList.add('d-none'); // Hide the reply form
+                        mostrarAlerta(mensajeRespuestaDiv, 'Respuesta publicada exitosamente.', 'success');
+                        // Reload all comments to show the new reply
                         await cargarComentarios(currentTipoEntidad, currentEntidadId, comentariosWrapper);
                     } else {
                         const errorText = await response.text();
                         console.error('Error al enviar la respuesta:', response.status, response.statusText, errorText);
-                        if (response.status === 400) {
-                            mostrarAlerta(mensajeRespuestaDiv, `Error: ${errorText}`, 'danger');
+                        if (response.status === 401) {
+                            mostrarAlerta(mensajeRespuestaDiv, 'Debes iniciar sesión para responder.', 'danger');
                         } else {
                             mostrarAlerta(mensajeRespuestaDiv, `Error al enviar la respuesta: ${errorText || 'Inténtalo de nuevo.'}`, 'danger');
                         }
                     }
                 } catch (error) {
-                    console.error('Error de red o procesamiento al enviar respuesta:', error);
+                    console.error('Error de red o procesamiento al enviar la respuesta:', error);
                     mostrarAlerta(mensajeRespuestaDiv, 'Ocurrió un error inesperado al enviar la respuesta.', 'danger');
                 }
             }
