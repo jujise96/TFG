@@ -1,4 +1,5 @@
 ﻿@model List<ElementoUsuarioViewModel>
+@using TFG.Models; @* Asegúrate de que esta directiva 'using' apunte a donde están tus enums! *@
 
 @{
     ViewData["Title"] = "Página de inicio";
@@ -16,9 +17,12 @@
     <div class="mb-3">
         @if ((tipo == "Mision" || tipo == "Item") && User.Identity.IsAuthenticated)
         {
-            <button class="btn btn-outline-primary btn-sm m-1 filter-button active" data-filter="todos">Todos</button>
-            <button class="btn btn-outline-success btn-sm m-1 filter-button" data-filter="completados">Completados</button>
-            <button class="btn btn-outline-danger btn-sm m-1 filter-button" data-filter="no-completados">No Completados</button>
+            @* NUEVO: Desplegable para el filtro de estado (Completado/No Completado/Todos) *@
+            <select id="estadoFilter" class="form-select form-select-sm d-inline-block w-auto m-1">
+                <option value="todos">Todos los estados</option>
+                <option value="true">Completados</option>
+                <option value="false">No Completados</option>
+            </select>
 
             <select id="subtipoFilter" class="form-select form-select-sm d-inline-block w-auto m-1">
                 <option value="todos">Todos los @tipo</option>
@@ -73,7 +77,6 @@
                             <th scope="col">Progreso</th>
                         }
 
-
                         @if (User.IsInRole("Admin"))
                         {
                             <th scope="col">Acciones</th>
@@ -83,7 +86,7 @@
                 <tbody>
                     @foreach (var item in Model)
                     {
-                        <tr class="elemento-lista data-subtipo" data-completada="@item.completada.ToString().ToLower()">
+                        <tr class="elemento-lista" data-completada="@item.completada.ToString().ToLower()" data-subtipo="@item.subtipo">
                             <td>
                                 <a asp-controller="Home" asp-action="@tipo" asp-route-id="@item.Id" asp-route-idJuego="@item.idJuego">
                                     @item.Nombre
@@ -101,21 +104,18 @@
                             @if (tipo == "Juego")
                             {
                                 <td>
-                                    @if(item.Progreso >0){
-
+                                    @if (item.Progreso > 0)
+                                    {
                                         <div class="progress mt-2" role="progressbar" aria-label="Example with label" aria-valuenow="@item.Progreso" aria-valuemin="0" aria-valuemax="100">
                                             <div class="progress-bar" style="width: @item.Progreso%">@item.Progreso%</div>
                                         </div>
-
-                                    }else{
-
-                                        <p>¡Animate a empezar una partida!</p>
-
+                                    }
+                                    else
+                                    {
+                                        <p>¡Anímate a empezar una partida!</p>
                                     }
                                 </td>
-
                             }
-
 
                             @if ((tipo == "Mision" || tipo == "Item") && User.Identity.IsAuthenticated)
                             {
@@ -152,40 +152,37 @@
         const urlaccion = '@Url.Action("MarcarCompletadaConModelo", "GestionUsuario")';
         const tipo = '@tipo';
         let marcarcompletada = document.querySelectorAll('.checkbox-completed');
-        const filterButtons = document.querySelectorAll('.filter-button');
+        // Se elimina 'filterButtons' ya que los botones de estado se reemplazan por un select
         const listaElementos = document.querySelectorAll('.elemento-lista');
-        const searchInput = document.getElementById('searchInput'); // Get the new search input
-        let filtroActivo = 'todos'; // Variable para almacenar el filtro activo
-        let subtipoActivo = 'todos'; // Variable para almacenar el filtro de subtipo activo
+        const searchInput = document.getElementById('searchInput');
+        const subtipoFilterSelect = document.getElementById('subtipoFilter');
+        const estadoFilterSelect = document.getElementById('estadoFilter'); // NUEVO: Obtener el select de estado
 
+        let estadoActivo = 'todos'; // NUEVO: Variable para el filtro de estado (sustituye a filtroActivo)
+        let subtipoActivo = 'todos';
 
-        // Function to apply both completion and search filters
         function aplicarFiltro() {
-            const searchTerm = searchInput.value.toLowerCase(); // Get the search term and convert to lowercase
+            const searchTerm = searchInput.value.toLowerCase();
 
             listaElementos.forEach(item => {
                 const completada = item.getAttribute('data-completada');
-                const itemSubtipo = item.getAttribute('data-subtipo'); // Obtener el subtipo del atributo data-*
-                const itemName = item.querySelector('td').textContent.toLowerCase(); // Get the item name
+                const itemSubtipo = item.getAttribute('data-subtipo');
+                const itemName = item.querySelector('td:first-child').textContent.toLowerCase();
 
                 const matchesSearch = itemName.includes(searchTerm);
-                let matchesCompletionFilter = true;
-                let matchesSubtypeFilter = true; // Por defecto, coincide con el filtro de subtipo
+                let matchesCompletionFilter = true; // Renombrada para mayor claridad
+                let matchesSubtypeFilter = true;
 
-
-                if (filtroActivo === 'completados') {
-                    matchesCompletionFilter = (completada === 'true');
-                } else if (filtroActivo === 'no-completados') {
-                    matchesCompletionFilter = (completada === 'false');
+                // Lógica del filtro de estado (antes 'filtroActivo')
+                if (estadoActivo !== 'todos') {
+                    matchesCompletionFilter = (completada === estadoActivo);
                 }
 
                 // Lógica del filtro por subtipo
                 if (subtipoActivo !== 'todos') {
-                    // Comparamos el valor numérico del subtipo
                     matchesSubtypeFilter = (itemSubtipo === subtipoActivo);
                 }
 
-                // Show the row if it matches both the search and completion filters
                 item.style.display = (matchesSearch && matchesCompletionFilter && matchesSubtypeFilter) ? 'table-row' : 'none';
             });
         }
@@ -199,18 +196,14 @@
                     listItem.setAttribute('data-completada', completada.toString());
                 }
 
-                // Ensure an anti-forgery token is present if needed, for example, by adding a hidden input in your form.
-                // For this example, I'm assuming you might have a hidden form with the token on your page.
-                // If not, you might need to generate one or pass it differently based on your ASP.NET setup.
                 const antiForgeryTokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
                 const antiForgeryToken = antiForgeryTokenElement ? antiForgeryTokenElement.value : '';
-
 
                 const respuesta = await fetch(urlaccion, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'RequestVerificationToken': antiForgeryToken // Send the token
+                        'RequestVerificationToken': antiForgeryToken
                     },
                     body: JSON.stringify({
                         id: id,
@@ -219,7 +212,6 @@
                     })
                 });
                 if (respuesta.ok) {
-                    // Reapply the filter to update the view
                     aplicarFiltro();
                 } else {
                     alert("Error al marcar el elemento.");
@@ -227,14 +219,14 @@
             });
         });
 
-        if (filterButtons.length > 0) {
-            filterButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    filterButtons.forEach(btn => btn.classList.remove('active'));
-                    this.classList.add('active');
-                    filtroActivo = this.getAttribute('data-filter');
-                    aplicarFiltro();
-                });
+        // Se elimina el bucle para filterButtons, ya que se reemplazan por 'estadoFilterSelect'
+        // if (filterButtons.length > 0) { ... }
+
+        // NUEVO: Event listener para el cambio en el desplegable de estado
+        if (estadoFilterSelect) {
+            estadoFilterSelect.addEventListener('change', function() {
+                estadoActivo = this.value;
+                aplicarFiltro();
             });
         }
 
@@ -245,10 +237,8 @@
             });
         }
 
-        // Add event listener for the search input
         searchInput.addEventListener('keyup', aplicarFiltro);
 
-        // On page load, apply the initial filter (All)
         aplicarFiltro();
     </script>
 }
