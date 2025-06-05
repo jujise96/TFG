@@ -276,7 +276,8 @@ public class HomeController : Controller
 
         if (await juegoService.crearjuego(juego))
         {
-            return RedirectToAction("Mensaje", new { mensaje = "Se ha creado el juego" });
+            TempData["MensajeExito"] = "¡Misión creada correctamente!";
+            return RedirectToAction("Index");
         }
 
         return RedirectToAction("Mensaje", new { mensaje = "Error al intentar crear el juego" });
@@ -318,6 +319,7 @@ public class HomeController : Controller
 
         if (await misionService.crearmision(mision))
         {
+            TempData["MensajeExito"] = " Misión creada correctamente!";
             return RedirectToAction("Misiones", new { id = mision.JuegoId });
         }
 
@@ -356,6 +358,7 @@ public class HomeController : Controller
         };
         if (await itemService.CrearItem(item))
         {
+            TempData["MensajeExito"] = "¡Item creado correctamente!";
             return RedirectToAction("Items", new { id = item.JuegoId });
         }
         return RedirectToAction("Mensaje", new { mensaje = "Error al intentar crear el item" });
@@ -365,6 +368,7 @@ public class HomeController : Controller
     {
         if (await trucoService.Creartruco(truco))
         {
+            TempData["MensajeExito"] = "¡Truco creado correctamente!";
             return RedirectToAction("Trucos", new { Id = truco.JuegoId });
         }
         return RedirectToAction("Mensaje", new { mensaje = "Error al intentar crear el truco" });
@@ -604,6 +608,7 @@ public class HomeController : Controller
         {
             //return RedirectToAction("Mensaje", new { mensaje = "Se ha modificado el juego" });
             // Si el servicio devuelve true, exito en la BD
+            TempData["MensajeExito"] = "¡Juego Modificado correctamente!";
             return RedirectToAction("Juego", new { id = juego.Id });
         }
         else
@@ -660,6 +665,7 @@ public class HomeController : Controller
         };
         if (await misionService.ModificarMision(mision)) // O el nombre del método de tu servicio para actualizar
         {
+            TempData["MensajeExito"] = "¡Misión Modificada correctamente!";
             return RedirectToAction("Mision", new { id = mision.Id });
         }
         else
@@ -715,6 +721,7 @@ public class HomeController : Controller
         };
         if (await itemService.ModificarItem(items)) // O el nombre del método de tu servicio para actualizar
         {
+            TempData["MensajeExito"] = "¡Item Modificado correctamente!";
             return RedirectToAction("Item", new { id = items.Id });
         }
         else
@@ -742,6 +749,7 @@ public class HomeController : Controller
         };
         if (await trucoService.ModificarTruco(truco)) // O el nombre del método de tu servicio para actualizar
         {
+            TempData["MensajeExito"] = "¡Truco Modificado correctamente!";
             return RedirectToAction("Trucos", new { Id = truco.JuegoId });
         }
         else
