@@ -5,43 +5,174 @@
 }
 
 <div class="text-center">
-    <h1 class="display-4">Bienvenido a @Model.Nombre</h1>
-    <p>Consulta la información de los trucos del juego.</p>
+    <h1 class="display-4">Modificar Trucos para @Model.Nombre</h1>
+    <p>Edita los trucos existentes o añade nuevos.</p>
 </div>
 
 <div class="container mt-4">
-    <form asp-action="ModificarTruco" method="post">
+    <form asp-action="ModificarTruco" method="post" id="trucoForm">
         @Html.AntiForgeryToken()
-        <div class="form-group">
-            <label asp-for="JuegoId"></label>
-            <input asp-for="JuegoId" class="form-control" value="@Model.JuegoId" readonly />
-            <span asp-validation-for="JuegoId" class="text-danger"></span>
-        </div>
+        <input type="hidden" asp-for="JuegoId" value="@Model.JuegoId" />
+        <input type="hidden" asp-for="IdElem" value="@Model.IdElem" />
+        <input type="hidden" asp-for="Id" value="@Model.Id" /> @* Asegúrate de enviar el ID del truco principal si existe *@
 
-        <div class="form-group">
-            <label asp-for="IdElem"></label>
-            <input asp-for="IdElem" class="form-control" value="@Model.IdElem" />
-            <span asp-validation-for="IdElem" class="text-danger"></span>
-        </div>
-
-        <div class="form-group">
+        <div class="form-group mb-3">
             <label asp-for="Nombre"></label>
             <input asp-for="Nombre" class="form-control" value="@Model.Nombre" />
             <span asp-validation-for="Nombre" class="text-danger"></span>
         </div>
 
-        <div class="form-group">
+        <div class="form-group mb-3">
             <label asp-for="Descripcion"></label>
-            <textarea asp-for="Descripcion" class="form-control" value="@Model.Descripcion"></textarea>
+            <textarea asp-for="Descripcion" class="form-control">@Model.Descripcion</textarea>
             <span asp-validation-for="Descripcion" class="text-danger"></span>
         </div>
 
-        <div class="form-group">
-            <label asp-for="Trucos"></label>
-            <input asp-for="Trucos" class="form-control" value="@Model.Trucos" />
-            <span asp-validation-for="Trucos" class="text-danger"></span>
+        <h3>
+            Gestión de Trucos Individuales
+            <button type="button" class="btn btn-success btn-sm ms-2" id="addTrucoRow">Añadir Nuevo Truco</button>
+        </h3>
+        <p class="text-muted">Introduce la clave y la descripción de cada truco.</p>
+
+        <div id="trucosContainer">
+            @if (!string.IsNullOrEmpty(Model.Trucos))
+            {
+                @foreach (var trucoString in Model.Trucos.Split(';', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    var partes = trucoString.Split("::", 2);
+                    if (partes.Length == 2)
+                    {
+                        <div class="row mb-2 truco-entry">
+                            <div class="col-md-4">
+                                <input type="text" class="form-control truco-clave" value="@partes[0].Trim()">
+                            </div>
+                            <div class="col-md-7">
+                                <input type="text" class="form-control truco-descripcion" value="@partes[1].Trim()">
+                            </div>
+                            <div class="col-md-1 d-flex align-items-center justify-content-end">
+                                <button type="button" class="btn btn-danger btn-sm remove-truco">X</button>
+                            </div>
+                        </div>
+                    }
+                    else if (partes.Length == 1 && !string.IsNullOrWhiteSpace(partes[0]))
+                    {
+                        <div class="row mb-2 truco-entry">
+                            <div class="col-md-4">
+                                <input type="text" class="form-control truco-clave" value="@partes[0].Trim()">
+                            </div>
+                            <div class="col-md-7">
+                                <input type="text" class="form-control truco-descripcion" placeholder="(Descripción no disponible)">
+                            </div>
+                            <div class="col-md-1 d-flex align-items-center justify-content-end">
+                                <button type="button" class="btn btn-danger btn-sm remove-truco">X</button>
+                            </div>
+                        </div>
+                    }
+                }
+            }
         </div>
 
-        <button type="submit" class="btn btn-primary mt-3 mb-3">Guardar Truco</button>
+        @* Campo oculto donde se guardarán todos los trucos concatenados antes de enviar el formulario *@
+        <input type="hidden" asp-for="Trucos" id="hiddenTrucosField" />
+
+        <button type="submit" class="btn btn-primary mt-3 mb-3">Guardar Cambios del Truco</button>
+        <a asp-action="Trucos" asp-route-id="@Model.JuegoId" class="btn btn-secondary mt-3 mb-3">Volver a la información del Truco</a>
     </form>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            const trucosContainer = $('#trucosContainer');
+            const addTrucoRowBtn = $('#addTrucoRow');
+            const trucoForm = $('#trucoForm');
+            const hiddenTrucosField = $('#hiddenTrucosField');
+
+            // Función para añadir una nueva fila de truco vacía
+            function addNewTrucoRow(clave = '', descripcion = '') {
+                const newRowHtml = `
+                    <div class="row mb-2 truco-entry">
+                        <div class="col-md-4">
+                            <input type="text" class="form-control truco-clave" placeholder="Clave del truco" value="${clave}">
+                        </div>
+                        <div class="col-md-7">
+                            <input type="text" class="form-control truco-descripcion" placeholder="Descripción del truco" value="${descripcion}">
+                        </div>
+                        <div class="col-md-1 d-flex align-items-center justify-content-end">
+                            <button type="button" class="btn btn-danger btn-sm remove-truco" title="Eliminar este truco">X</button>
+                        </div>
+                    </div>
+                `;
+                trucosContainer.prepend(newRowHtml); // Añadir al principio
+            }
+
+            // Evento para añadir una nueva fila cuando se pulsa el botón "Añadir Nuevo Truco"
+            addTrucoRowBtn.on('click', function() {
+                let foundEmptyRow = false;
+
+                // Recorrer las filas existentes para ver si hay alguna completamente vacía
+                trucosContainer.find('.truco-entry').each(function() {
+                    const clave = $(this).find('.truco-clave').val().trim();
+                    const descripcion = $(this).find('.truco-descripcion').val().trim();
+
+                    if (clave === '' && descripcion === '') {
+                        foundEmptyRow = true;
+                        // Opcional: Podrías enfocar o resaltar la fila vacía existente
+                        $(this).find('.truco-clave').focus();
+                        return false; // Detiene el bucle .each
+                    }
+                });
+
+                if (foundEmptyRow) {
+                    alert('Ya hay un nuevo truco en blanco esperando a ser escrito. Por favor, complétalo antes de añadir otro.');
+                } else {
+                    addNewTrucoRow(); // Solo añadir si no hay filas vacías existentes
+                }
+            });
+
+            // Evento para eliminar una fila de truco
+            trucosContainer.on('click', '.remove-truco', function() {
+                if (confirm('¿Estás seguro de que quieres eliminar este truco?')) {
+                    $(this).closest('.truco-entry').remove();
+                }
+            });
+
+            // Manejar el envío del formulario para concatenar los trucos y validar
+            trucoForm.submit(function (event) {
+                let allTrucos = [];
+                let hasInvalidField = false;
+
+                trucosContainer.find('.truco-entry').each(function () {
+                    const claveInput = $(this).find('.truco-clave');
+                    const descripcionInput = $(this).find('.truco-descripcion');
+
+                    const clave = claveInput.val().trim();
+                    const descripcion = descripcionInput.val().trim();
+
+                    if (clave === '' && descripcion === '') {
+                        claveInput.removeClass('is-invalid');
+                        descripcionInput.removeClass('is-invalid');
+                        return true;
+                    }
+
+                    if (clave === '' || descripcion === '') {
+                        hasInvalidField = true;
+                        if (clave === '') claveInput.addClass('is-invalid'); else claveInput.removeClass('is-invalid');
+                        if (descripcion === '') descripcionInput.addClass('is-invalid'); else descripcionInput.removeClass('is-invalid');
+                    } else {
+                        claveInput.removeClass('is-invalid');
+                        descripcionInput.removeClass('is-invalid');
+                        allTrucos.push(clave + '::' + descripcion);
+                    }
+                });
+
+                if (hasInvalidField) {
+                    alert('Por favor, completa tanto la clave como la descripción para todos los trucos que deseas guardar, o deja ambos campos en blanco para omitir la línea.');
+                    event.preventDefault();
+                } else {
+                    hiddenTrucosField.val(allTrucos.join(';'));
+                }
+            });
+        });
+    </script>
+}

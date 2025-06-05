@@ -318,7 +318,7 @@ public class HomeController : Controller
 
         if (await misionService.crearmision(mision))
         {
-            return RedirectToAction("Mensaje", new { mensaje = "Se ha creado la mision" });
+            return RedirectToAction("Misiones", new { id = mision.JuegoId });
         }
 
         return RedirectToAction("Mensaje", new { mensaje = "Error al intentar crear la mision asegurese de que el Id del juego existe" });
@@ -356,7 +356,7 @@ public class HomeController : Controller
         };
         if (await itemService.CrearItem(item))
         {
-            return RedirectToAction("Mensaje", new { mensaje = "Se ha creado el item" });
+            return RedirectToAction("Items", new { id = item.JuegoId });
         }
         return RedirectToAction("Mensaje", new { mensaje = "Error al intentar crear el item" });
     }
@@ -365,7 +365,7 @@ public class HomeController : Controller
     {
         if (await trucoService.Creartruco(truco))
         {
-            return RedirectToAction("Mensaje", new { mensaje = "Se ha creado el truco" });
+            return RedirectToAction("Trucos", new { Id = truco.JuegoId });
         }
         return RedirectToAction("Mensaje", new { mensaje = "Error al intentar crear el truco" });
     }
@@ -417,7 +417,8 @@ public class HomeController : Controller
                     var nombrearchivo = Path.GetFileName(uri.LocalPath);
                     await storageservice.DeleteFileAsync(nombrearchivo);
                 }
-                return RedirectToAction("Index");
+                //return RedirectToAction("Index");
+                return RedirectToAction("Misiones", new { id = idJuego });
             }
             else
             {
@@ -437,7 +438,7 @@ public class HomeController : Controller
                     await storageservice.DeleteFileAsync(nombrearchivo);
                 }
 
-                return RedirectToAction("Index");
+                return RedirectToAction("Items", new { id = idJuego });
             }
             else
             {
@@ -601,7 +602,9 @@ public class HomeController : Controller
         };
         if (await juegoService.ModificarJuego(juego)) // O el nombre del método de tu servicio para actualizar
         {
-            return RedirectToAction("Mensaje", new { mensaje = "Se ha modificado el juego" });
+            //return RedirectToAction("Mensaje", new { mensaje = "Se ha modificado el juego" });
+            // Si el servicio devuelve true, exito en la BD
+            return RedirectToAction("Juego", new { id = juego.Id });
         }
         else
         {
@@ -657,7 +660,7 @@ public class HomeController : Controller
         };
         if (await misionService.ModificarMision(mision)) // O el nombre del método de tu servicio para actualizar
         {
-            return RedirectToAction("Mensaje", new { mensaje = "Se ha modificado la mision" });
+            return RedirectToAction("Mision", new { id = mision.Id });
         }
         else
         {
@@ -712,7 +715,7 @@ public class HomeController : Controller
         };
         if (await itemService.ModificarItem(items)) // O el nombre del método de tu servicio para actualizar
         {
-            return RedirectToAction("Mensaje", new { mensaje = "Se ha modificado la mision" });
+            return RedirectToAction("Item", new { id = items.Id });
         }
         else
         {
@@ -739,7 +742,7 @@ public class HomeController : Controller
         };
         if (await trucoService.ModificarTruco(truco)) // O el nombre del método de tu servicio para actualizar
         {
-            return RedirectToAction("Mensaje", new { mensaje = "Se ha modificado la mision" });
+            return RedirectToAction("Trucos", new { Id = truco.JuegoId });
         }
         else
         {

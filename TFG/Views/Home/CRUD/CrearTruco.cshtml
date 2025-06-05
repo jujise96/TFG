@@ -1,57 +1,148 @@
 ﻿@model Truco
 
 @{
-    ViewData["Title"] = Model.Nombre;
+    ViewData["Title"] = "Crear Nuevo Truco"; // Changed title for creation context
 }
 
 <div class="text-center">
-    <h1 class="display-4">Bienvenido a @Model.Nombre</h1>
-    <p>Consulta la información de los trucos del juego.</p>
+    <h1 class="display-4">Crear Nuevo Truco para el Juego</h1>
+    <p>Introduce la información del nuevo truco y sus detalles.</p>
 </div>
 
 <div class="container mt-4">
-    <form asp-action="CrearTruco" method="post">
+    <form asp-action="CrearTruco" method="post" id="trucoForm"> 
         @Html.AntiForgeryToken()
-        <div class="form-group">
-            <label asp-for="JuegoId"></label>
+
+        <div class="form-group mb-3">
+            <label asp-for="JuegoId">ID del Juego</label>
             <input asp-for="JuegoId" class="form-control" value="@Model.JuegoId" readonly />
             <span asp-validation-for="JuegoId" class="text-danger"></span>
         </div>
 
-        <div class="form-group">
-            <label asp-for="IdElem"></label>
+        <div class="form-group mb-3">
+            <label asp-for="IdElem">ID del Elemento (Único dentro del Juego)</label>
             <input asp-for="IdElem" class="form-control" />
             <span asp-validation-for="IdElem" class="text-danger"></span>
         </div>
 
-        <div class="form-group">
-            <label asp-for="Nombre"></label>
+        <div class="form-group mb-3">
+            <label asp-for="Nombre">Nombre del Truco</label>
             <input asp-for="Nombre" class="form-control" />
             <span asp-validation-for="Nombre" class="text-danger"></span>
         </div>
 
-        <div class="form-group">
-            <label asp-for="Descripcion"></label>
+        <div class="form-group mb-3">
+            <label asp-for="Descripcion">Descripción General del Truco</label>
             <textarea asp-for="Descripcion" class="form-control"></textarea>
             <span asp-validation-for="Descripcion" class="text-danger"></span>
         </div>
 
-        <div class="form-group">
-            <label asp-for="Trucos"></label>
-            <input asp-for="Trucos" class="form-control" />
-            <span asp-validation-for="Trucos" class="text-danger"></span>
+        <hr/>
+
+        <h3>Gestión de Trucos Individuales
+            <button type="button" class="btn btn-success btn-sm ms-2" id="addTrucoRow">Añadir Nuevo Truco</button>
+        </h3>
+        <p class="text-muted">Introduce la **clave** y la **descripción** de cada truco. Cada par se guardará en el formato `clave::descripción;`.</p>
+
+        <div id="trucosContainer">
         </div>
 
-        <button type="submit" class="btn btn-primary mt-3 mb-3">Guardar Truco</button>
+        <input type="hidden" asp-for="Trucos" id="hiddenTrucosField" />
+
+        <button type="submit" class="btn btn-primary mt-3 mb-3">Guardar Nuevo Truco</button>
     </form>
 </div>
 
-<div class="container mt-4">
-    <h2>Información de la Misión</h2>
-    <ul class="list-unstyled">
-        <li><strong>Nombre:</strong> @Model.Nombre</li>
-        <li><strong>IdElem:</strong> @Model.IdElem</li>
-        <li><strong>Descripción:</strong> @Model.Descripcion</li>
-        <li><strong>Trucos:</strong> @Model.Trucos</li>
-    </ul>
-</div>
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            const trucosContainer = $('#trucosContainer');
+            const addTrucoRowBtn = $('#addTrucoRow');
+            const trucoForm = $('#trucoForm');
+            const hiddenTrucosField = $('#hiddenTrucosField');
+            function addNewTrucoRow(clave = '', descripcion = '') {
+                const newRowHtml = `
+                    <div class="row mb-2 truco-entry">
+                        <div class="col-md-4">
+                            <input type="text" class="form-control truco-clave" placeholder="Clave del truco" value="${clave}">
+                        </div>
+                        <div class="col-md-7">
+                            <input type="text" class="form-control truco-descripcion" placeholder="Descripción del truco" value="${descripcion}">
+                        </div>
+                        <div class="col-md-1 d-flex align-items-center justify-content-end">
+                            <button type="button" class="btn btn-danger btn-sm remove-truco" title="Eliminar este truco">X</button>
+                        </div>
+                    </div>
+                `;
+                trucosContainer.prepend(newRowHtml);
+            }
+
+            addTrucoRowBtn.on('click', function() {
+                let foundEmptyRow = false;
+
+                trucosContainer.find('.truco-entry').each(function() {
+                    const clave = $(this).find('.truco-clave').val().trim();
+                    const descripcion = $(this).find('.truco-descripcion').val().trim();
+
+                    if (clave === '' && descripcion === '') {
+                        foundEmptyRow = true;
+                        $(this).find('.truco-clave').focus(); 
+                        return false; 
+                    }
+                });
+
+                if (foundEmptyRow) {
+                    alert('Ya hay un nuevo truco en blanco esperando a ser escrito. Por favor, complétalo antes de añadir otro.');
+                } else {
+                    addNewTrucoRow(); 
+                }
+            });
+
+            
+            trucosContainer.on('click', '.remove-truco', function() {
+                if (confirm('¿Estás seguro de que quieres eliminar este truco?')) {
+                    $(this).closest('.truco-entry').remove();
+                }
+            });
+
+            
+            trucoForm.submit(function (event) {
+                let allTrucos = [];
+                let hasInvalidField = false;
+
+                trucosContainer.find('.truco-entry').each(function () {
+                    const claveInput = $(this).find('.truco-clave');
+                    const descripcionInput = $(this).find('.truco-descripcion');
+
+                    const clave = claveInput.val().trim();
+                    const descripcion = descripcionInput.val().trim();
+
+                    
+                    if (clave === '' && descripcion === '') {
+                        claveInput.removeClass('is-invalid');
+                        descripcionInput.removeClass('is-invalid');
+                        return true; 
+                    }
+
+                    
+                    if (clave === '' || descripcion === '') {
+                        hasInvalidField = true;
+                        if (clave === '') claveInput.addClass('is-invalid'); else claveInput.removeClass('is-invalid');
+                        if (descripcion === '') descripcionInput.addClass('is-invalid'); else descripcionInput.removeClass('is-invalid');
+                    } else {
+                        claveInput.removeClass('is-invalid');
+                        descripcionInput.removeClass('is-invalid');
+                        allTrucos.push(clave + '::' + descripcion);
+                    }
+                });
+
+                if (hasInvalidField) {
+                    alert('Por favor, completa tanto la clave como la descripción para todos los trucos que deseas guardar, o deja ambos campos en blanco para omitir la línea.');
+                    event.preventDefault(); 
+                } else {
+                    hiddenTrucosField.val(allTrucos.join(';'));
+                }
+            });
+        });
+    </script>
+}
