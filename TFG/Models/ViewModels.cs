@@ -137,6 +137,7 @@ namespace TFG.Models
         public int? PerfilPic { get; set; }
         public decimal Progreso { get; set; } = -1;
         public string tipo { get; set; } // Puede ser "Mision", "Item" o "Juego"
+        public int subtipo { get; set; } // por ejemplo para misiones puede ser 0 para principal, 1 para secundaria, etc. o para items puede ser 0 para arma, 1 para armadura, etc.
     }
 
 

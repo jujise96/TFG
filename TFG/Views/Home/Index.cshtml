@@ -40,6 +40,10 @@
                 <thead>
                     <tr>
                         <th scope="col">Nombre</th>
+                        @if (tipo == "Mision" || tipo == "Item")
+                        {
+                            <th scope="col">Tipo</th>
+                        }
                         @if ((tipo == "Mision" || tipo == "Item") && User.Identity.IsAuthenticated)
                         {
                             <th scope="col">Completada</th>
@@ -66,7 +70,14 @@
                                     @item.Nombre
                                 </a>
                             </td>
-
+                            @if (tipo == "Mision")
+                            {
+                                <td>@(((TipoQuest)item.subtipo).ToString())</td>
+                            }
+                            else if (tipo == "Item")
+                            {
+                                <td>@(((TipoItem)item.subtipo).ToString())</td>
+                            }
 
                             @if (tipo == "Juego")
                             {
