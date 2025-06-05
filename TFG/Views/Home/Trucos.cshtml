@@ -35,12 +35,37 @@
             <strong>Trucos:</strong> <em>Para poder ingresar los siguientes trucos deberá pulsar la "tecla de grado ordinal" (la que se usa para el carácter "º")</em>
             @if (!string.IsNullOrEmpty(Model.Trucos))
             {
-                <ul class="list-unstyled">
-                    @foreach (var truco in Model.Trucos.Split(';'))
-                    {
-                        <li>@truco</li>
-                    }
-                </ul>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mt-3">
+                        <thead>
+                            <tr>
+                                <th scope="col">Clave</th>
+                                <th scope="col">Descripción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var trucoString in Model.Trucos.Split(';', StringSplitOptions.RemoveEmptyEntries))
+                            {
+                                var partes = trucoString.Split("::", 2); // Divide solo en 2 partes: clave y descripción
+                                if (partes.Length == 2)
+                                {
+                                    <tr>
+                                        <td>@partes[0].Trim()</td>
+                                        <td>@partes[1].Trim()</td>
+                                    </tr>
+                                }
+                                else if (partes.Length == 1 && !string.IsNullOrWhiteSpace(partes[0]))
+                                {
+                                    // Manejar casos donde solo hay una clave sin descripción clara
+                                    <tr>
+                                        <td>@partes[0].Trim()</td>
+                                        <td>(Descripción no disponible)</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
             }
             else
             {
