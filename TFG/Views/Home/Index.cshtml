@@ -19,6 +19,25 @@
             <button class="btn btn-outline-primary btn-sm m-1 filter-button active" data-filter="todos">Todos</button>
             <button class="btn btn-outline-success btn-sm m-1 filter-button" data-filter="completados">Completados</button>
             <button class="btn btn-outline-danger btn-sm m-1 filter-button" data-filter="no-completados">No Completados</button>
+
+            <select id="subtipoFilter" class="form-select form-select-sm d-inline-block w-auto m-1">
+                <option value="todos">Todos los @tipo</option>
+                @if (tipo == "Mision")
+                {
+                    foreach (var val in Enum.GetValues(typeof(TipoQuest)))
+                    {
+                        <option value="@((int)val)">@(((TipoQuest)val).ToString())</option>
+                    }
+                }
+                else if (tipo == "Item")
+                {
+                    foreach (var val in Enum.GetValues(typeof(TipoItem)))
+                    {
+                        <option value="@((int)val)">@(((TipoItem)val).ToString())</option>
+                    }
+                }
+            </select>
+
         }
         @if (User.IsInRole("Admin"))
         {
@@ -64,7 +83,7 @@
                 <tbody>
                     @foreach (var item in Model)
                     {
-                        <tr class="elemento-lista" data-completada="@item.completada.ToString().ToLower()">
+                        <tr class="elemento-lista data-subtipo" data-completada="@item.completada.ToString().ToLower()">
                             <td>
                                 <a asp-controller="Home" asp-action="@tipo" asp-route-id="@item.Id" asp-route-idJuego="@item.idJuego">
                                     @item.Nombre
@@ -137,6 +156,8 @@
         const listaElementos = document.querySelectorAll('.elemento-lista');
         const searchInput = document.getElementById('searchInput'); // Get the new search input
         let filtroActivo = 'todos'; // Variable para almacenar el filtro activo
+        let subtipoActivo = 'todos'; // Variable para almacenar el filtro de subtipo activo
+
 
         // Function to apply both completion and search filters
         function aplicarFiltro() {
@@ -144,10 +165,13 @@
 
             listaElementos.forEach(item => {
                 const completada = item.getAttribute('data-completada');
-                const itemName = item.querySelector('td a').textContent.toLowerCase(); // Get the item name
+                const itemSubtipo = item.getAttribute('data-subtipo'); // Obtener el subtipo del atributo data-*
+                const itemName = item.querySelector('td').textContent.toLowerCase(); // Get the item name
 
                 const matchesSearch = itemName.includes(searchTerm);
                 let matchesCompletionFilter = true;
+                let matchesSubtypeFilter = true; // Por defecto, coincide con el filtro de subtipo
+
 
                 if (filtroActivo === 'completados') {
                     matchesCompletionFilter = (completada === 'true');
@@ -155,8 +179,14 @@
                     matchesCompletionFilter = (completada === 'false');
                 }
 
+                // Lógica del filtro por subtipo
+                if (subtipoActivo !== 'todos') {
+                    // Comparamos el valor numérico del subtipo
+                    matchesSubtypeFilter = (itemSubtipo === subtipoActivo);
+                }
+
                 // Show the row if it matches both the search and completion filters
-                item.style.display = (matchesSearch && matchesCompletionFilter) ? 'table-row' : 'none';
+                item.style.display = (matchesSearch && matchesCompletionFilter && matchesSubtypeFilter) ? 'table-row' : 'none';
             });
         }
 
@@ -205,6 +235,13 @@
                     filtroActivo = this.getAttribute('data-filter');
                     aplicarFiltro();
                 });
+            });
+        }
+
+        if (subtipoFilterSelect) {
+            subtipoFilterSelect.addEventListener('change', function() {
+                subtipoActivo = this.value;
+                aplicarFiltro();
             });
         }
 
