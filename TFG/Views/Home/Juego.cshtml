@@ -3,8 +3,11 @@
 @{
     ViewData["Title"] = Model.Nombre;
     var idJuego = Model.Id;
-    int progresoMision = TempData["progresomision"] as int? ?? 0;
-    int progresoitem = TempData["progresoitem"] as int? ?? 0;
+    //int progresoMision = TempData["progresomision"] as int? ?? 0;
+    //int progresoitem = TempData["progresoitem"] as int? ?? 0;
+    int progresoMision = ViewBag.progresomision ?? 0;
+    int progresoitem = ViewBag.progresoitem ?? 0;
+
 }
 
 <div class="text-center">
@@ -43,8 +46,8 @@
             <a asp-controller="Home" asp-action="Misiones" asp-route-id="@idJuego">Ver Misiones</a>
             @if (progresoMision >= 0)
             {
-                <div class="progress mt-2" role="progressbar" aria-label="Example with label" aria-valuenow="@TempData["progresomision"]" aria-valuemin="0" aria-valuemax="100">
-                    <div class="progress-bar" style="width: @TempData["progresomision"]%">@TempData["progresomision"]%</div>
+                <div class="progress mt-2" role="progressbar" aria-label="Example with label" aria-valuenow="@progresoMision" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar" style="width: @progresoMision%">@progresoMision%</div>
                 </div>
             }else
             {
@@ -56,8 +59,8 @@
             <a asp-controller="Home" asp-action="Items" asp-route-id="@idJuego">Ver Ítems</a>
             @if (progresoitem >= 0)
             {
-                <div class="progress mt-2" role="progressbar" aria-label="Example with label" aria-valuenow="@TempData["progresoitem"]" aria-valuemin="0" aria-valuemax="100">
-                    <div class="progress-bar" style="width: @TempData["progresoitem"]%">@TempData["progresoitem"]%</div>
+                <div class="progress mt-2" role="progressbar" aria-label="Example with label" aria-valuenow="@progresoitem" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar" style="width: @progresoitem%">@progresoitem%</div>
                 </div>
             }else
             {

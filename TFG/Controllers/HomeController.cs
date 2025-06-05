@@ -76,14 +76,18 @@ public class HomeController : Controller
                 var progresoMisionDecimal = await misionService.ProgresoMision(elemento.Id, usuario.Id);
                 var progresoItemDecimal = await itemService.ProgresoItem(elemento.Id, usuario.Id);
 
-                TempData["progresomision"] = (int)progresoMisionDecimal;
-                TempData["progresoitem"] = (int)progresoItemDecimal;
+                //TempData["progresomision"] = (int)progresoMisionDecimal;
+                //TempData["progresoitem"] = (int)progresoItemDecimal;
+                ViewBag.progresomision = (int)progresoMisionDecimal;
+                ViewBag.progresoitem = (int)progresoItemDecimal;
             }
         }
         else
         {
-            TempData["progresomision"] = -1;
-            TempData["progresoitem"] = -1;
+            //TempData["progresomision"] = -1;
+            //TempData["progresoitem"] = -1;
+            ViewBag.progresomision = -1;
+            ViewBag.progresoitem = -1;
         }
 
 

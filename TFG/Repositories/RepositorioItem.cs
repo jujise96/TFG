@@ -137,9 +137,9 @@ namespace TFG.Repositories
             SELECT
                 CAST(ROUND(CAST(COUNT(UIC.ItemId) AS DECIMAL(18, 10)) * 100 / NULLIF(COUNT(I.Id), 0), 3) AS DECIMAL(18, 3)) AS PorcentajeItemsObtenidos
             FROM
-                [GSY_DB].[dbo].[Items] AS I
+                Items AS I
             LEFT JOIN
-                [GSY_DB].[dbo].[UsuarioItemCompletado] AS UIC ON I.Id = UIC.ItemId
+                UsuarioItemCompletado AS UIC ON I.Id = UIC.ItemId
                 AND UIC.UsuarioId = @idUsuario  -- Parámetro para el ID del usuario
             WHERE
                 I.JuegoId = @idJuego; -- Parámetro para el ID del juego";

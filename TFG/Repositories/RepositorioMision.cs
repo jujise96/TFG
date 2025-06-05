@@ -137,9 +137,9 @@ namespace TFG.Repositories
             SELECT
                 CAST(ROUND(CAST(COUNT(UCC.MisionId) AS DECIMAL(18, 10)) * 100 / NULLIF(COUNT(M.Id), 0), 3) AS DECIMAL(18, 3)) AS PorcentajeMisionesCompletadas
             FROM
-                [GSY_DB].[dbo].[Mision] AS M
+                Mision AS M
             LEFT JOIN
-                [GSY_DB].[dbo].[UsuarioMisionCompletada] AS UCC ON M.Id = UCC.MisionId
+                UsuarioMisionCompletada AS UCC ON M.Id = UCC.MisionId
                 AND UCC.UsuarioId = @idUsuario  -- Parámetro para el ID del usuario
             WHERE
                 M.JuegoId = @idJuego; -- Parámetro para el ID del juego";
