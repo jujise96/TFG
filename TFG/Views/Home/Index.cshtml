@@ -126,7 +126,7 @@
                             @if (User.IsInRole("Admin"))
                             {
                                 <td>
-                                    <form method="post" asp-controller="Home" asp-action="eliminarelemento" class="d-inline">
+                                    <form method="post" asp-controller="Home" asp-action="eliminarelemento" class="d-inline" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este @tipo?');">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="tipo" value="@tipo" />
                                         <input type="hidden" name="idelemento" value="@item.Id" />

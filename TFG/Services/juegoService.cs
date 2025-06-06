@@ -5,6 +5,7 @@ namespace TFG.Services
 {
     public interface IJuegoService
     {
+        Task<String> IdaNombre(int IdJuego);
         Task<Juego> ObtenerJuegoPorIdAsync(int id);
         Task<List<ElementoUsuarioViewModel>> ListarJuegos();
         Task<List<ElementoUsuarioViewModel>> ObtenerQuestsPorJuegoAsync(int juegoId);
@@ -86,6 +87,11 @@ namespace TFG.Services
             progresoTotal = Math.Round(progresoTotal, 3);
 
             return progresoTotal;
+        }
+
+        public async Task<string> IdaNombre(int IdJuego)
+        {
+            return await _repositorioJuego.IdaNombre(IdJuego);
         }
     }
 }

@@ -16,6 +16,7 @@ namespace TFG.Repositories
         Task<bool> crearjuego(Juego juego);
         Task<bool> ModificarJuego(Juego juego);
         Task<List<string>> ObtenerUrlsImagenesHijosDeJuego(int juegoId);
+        Task<string> IdaNombre(int idJuego);
     }
     public class RepositorioJuego : IRepositorioJuego
     {
@@ -71,6 +72,13 @@ namespace TFG.Repositories
 
 
             return true;
+        }
+
+        public async Task<string> IdaNombre(int idJuego)
+        {
+            using var connection = new SqlConnection(connectionString);
+            var juego = await connection.QueryFirstOrDefaultAsync<string>("SELECT Nombre FROM Juego WHERE Id = @Id", new { Id = idJuego });
+            return juego;
         }
 
         public async Task<List<ElementoUsuarioViewModel>> ListarJuegos()
