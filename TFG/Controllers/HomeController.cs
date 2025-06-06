@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Security.Claims;
+using System.Xml.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -44,6 +45,10 @@ public class HomeController : Controller
     [AllowAnonymous]
     public async Task<IActionResult> Index()
     {
+        ViewData["Breadcrumbs"] = new List<BreadcrumbItem>
+        {
+            new BreadcrumbItem("Home", Url.Action("Index", "Home"), true)
+        };
         // Aquí puedes agregar la lógica para obtener los juegos y pasarlos a la vista
         var elemento = await juegoService.ListarJuegos();
         if (signinmanager.IsSignedIn(User))
@@ -66,11 +71,16 @@ public class HomeController : Controller
     public async Task<IActionResult> Juego(int id)
     {
         var elemento = await juegoService.ObtenerJuegoPorIdAsync(id);
+        ViewData["Breadcrumbs"] = new List<BreadcrumbItem>
+        {
+            new BreadcrumbItem("Home", Url.Action("Index", "Home")),
+            new BreadcrumbItem(elemento.Nombre, Url.Action("Juego", "Home", id))
+        };
         ViewBag.tipoelemento = "Juego";
         ViewBag.idJuego = id;
         if (signinmanager.IsSignedIn(User))
         {
-            var usuario = await userManager.FindByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier)); // Correctly fetch the user object
+            var usuario = await userManager.FindByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier));
             if (usuario is not null)
             {
                 var progresoMisionDecimal = await misionService.ProgresoMision(elemento.Id, usuario.Id);
@@ -99,6 +109,13 @@ public class HomeController : Controller
     {
 
         var elementos = await juegoService.ObtenerQuestsPorJuegoAsync(id);
+        var juego = await juegoService.ObtenerJuegoPorIdAsync(id);
+        ViewData["Breadcrumbs"] = new List<BreadcrumbItem>
+        {
+            new BreadcrumbItem("Home", Url.Action("Index", "Home")),
+            new BreadcrumbItem(juego.Nombre, Url.Action("Juego", "Home", new { id = juego.Id })),
+            new BreadcrumbItem("Misiones", Url.Action("Misiones", "Home", new { id = juego.Id }))
+        };
         if (signinmanager.IsSignedIn(User))
         {
             var usuario = await userManager.GetUserAsync(User); // Correctly fetch the user object
@@ -129,6 +146,13 @@ public class HomeController : Controller
     public async Task<IActionResult> Items(int id)
     {
         var elementos = await juegoService.ObtenerItemsPorJuegoAsync(id);
+        var juego = await juegoService.ObtenerJuegoPorIdAsync(id);
+        ViewData["Breadcrumbs"] = new List<BreadcrumbItem>
+        {
+            new BreadcrumbItem("Home", Url.Action("Index", "Home")),
+            new BreadcrumbItem(juego.Nombre, Url.Action("Juego", "Home", new { id = juego.Id })),
+            new BreadcrumbItem("Items", Url.Action("Items", "Home", new { id = juego.Id }))
+        };
         if (signinmanager.IsSignedIn(User))
         {
             var usuario = await userManager.GetUserAsync(User); // Correctly fetch the user object
@@ -158,6 +182,15 @@ public class HomeController : Controller
     public async Task<IActionResult> Mision(int id, int idJuego)
     {
         var elemento = await misionService.ObtenerMisionesPorIdAsync(id);
+        var juego = await juegoService.ObtenerJuegoPorIdAsync(elemento.JuegoId);
+        ViewData["Breadcrumbs"] = new List<BreadcrumbItem>
+        {
+            new BreadcrumbItem("Home", Url.Action("Index", "Home")),
+            new BreadcrumbItem(juego.Nombre, Url.Action("Juego", "Home", new { id = elemento.JuegoId })),
+            new BreadcrumbItem("Misiones", Url.Action("Misiones", "Home", new { id = elemento.JuegoId })),
+            new BreadcrumbItem(elemento.Nombre, Url.Action("Mision", "Home", new { id = id, idJuego = elemento.JuegoId }))
+        };
+
         var misionvm = new MisionViewModel
         {
             Id = elemento.Id,
@@ -176,7 +209,7 @@ public class HomeController : Controller
             var usuario = await userManager.GetUserAsync(User); // Correctly fetch the user object
             if (usuario != null)
             {
-                var elementoscompletados = await misionService.ObtenerQuestsPorJuegoyUsuario(idJuego, usuario.Id); // Use the correct instance of misionService
+                var elementoscompletados = await misionService.ObtenerQuestsPorJuegoyUsuario(elemento.JuegoId, usuario.Id); // Use the correct instance of misionService
 
                 if (elementoscompletados.Any(c => c.MisionId == elemento.Id))//si el id de elemento.id esta en elementoscompletados.MisionID
                 {
@@ -192,6 +225,16 @@ public class HomeController : Controller
     public async Task<IActionResult> Item(int id, int idJuego)
     {
         var elemento = await itemService.ObtenerItemPorIdAsync(id);
+        var juego = await juegoService.ObtenerJuegoPorIdAsync(elemento.JuegoId);
+        ViewData["Breadcrumbs"] = new List<BreadcrumbItem>
+        {
+            new BreadcrumbItem("Home", Url.Action("Index", "Home")),
+            new BreadcrumbItem(juego.Nombre, Url.Action("Juego", "Home", new { id = juego.Id })),
+            new BreadcrumbItem("Items", Url.Action("Items", "Home", new { id = juego.Id })),
+            new BreadcrumbItem(elemento.Nombre, Url.Action("Item", "Home", new { id = id, idJuego = elemento.JuegoId }))
+        };
+
+
         var itemvm = new ItemViewModel
         {
             Id = elemento.Id,
@@ -209,7 +252,7 @@ public class HomeController : Controller
             var usuario = await userManager.GetUserAsync(User); // Correctly fetch the user object
             if (usuario != null)
             {
-                var elementoscompletados = await itemService.ObtenerItemPorJuegoyUsuario(idJuego, usuario.Id); // Use the correct instance of misionService
+                var elementoscompletados = await itemService.ObtenerItemPorJuegoyUsuario(elemento.JuegoId, usuario.Id); // Use the correct instance of misionService
 
                 if (elementoscompletados.Any(c => c.Id == elemento.Id))//si el id de elemento.id esta en elementoscompletados.MisionID
                 {
@@ -225,6 +268,14 @@ public class HomeController : Controller
     public async Task<IActionResult> Trucos(int id)
     {
         var elemento = await trucoService.ObtenerTrucoPorIdAsync(id);
+        var juego = await juegoService.ObtenerJuegoPorIdAsync(id);
+        ViewData["Breadcrumbs"] = new List<BreadcrumbItem>
+        {
+            new BreadcrumbItem("Home", Url.Action("Index", "Home")),
+            new BreadcrumbItem(juego.Nombre, Url.Action("Juego", "Home", new { id = juego.Id })),
+            new BreadcrumbItem("Trucos", Url.Action("Trucos", "Home", new { id = juego.Id }))
+        };
+
         ViewBag.tipoelemento = "Trucos";
         if (elemento is null)
         {
@@ -244,21 +295,88 @@ public class HomeController : Controller
     [HttpPost]
     [Authorize(Roles = "Admin")]
     [AutoValidateAntiforgeryToken]
-    public async Task<IActionResult> CrearJuego(JuegoViewModel juegovm)
+    public async Task<IActionResult> CrearElemento(string tipo, string idJuego)
     {
 
+        if (tipo == "Juego")
+        {
+            ViewData["Breadcrumbs"] = new List<BreadcrumbItem>
+            {
+                new BreadcrumbItem("Home", Url.Action("Index", "Home")),
+                new BreadcrumbItem("Nuevo Juego", null)
+            };
+            var elemento = new JuegoViewModel();
+            return await Task.FromResult(View("CRUD/CrearJuego", elemento));
+        }
+        else if (tipo == "Mision")
+        {
+            var elemento = new MisionViewModel();
+            elemento.idJuego = int.Parse(idJuego);
+            var juego = await juegoService.ObtenerJuegoPorIdAsync(elemento.idJuego);
+
+            ViewData["Breadcrumbs"] = new List<BreadcrumbItem>
+            {
+                new BreadcrumbItem("Home", Url.Action("Index", "Home")),
+                new BreadcrumbItem(juego.Nombre, Url.Action("Juego", "Home", new { id = juego.Id })),
+                new BreadcrumbItem("Misiones", Url.Action("Misiones", "Home", new { id = elemento.idJuego })),
+                new BreadcrumbItem("Nueva Mision", null)
+            };            
+            return await Task.FromResult(View("CRUD/CrearMision", elemento));
+        }
+        else if (tipo == "Item")
+        {
+            var elemento = new ItemViewModel();
+            elemento.JuegoId = int.Parse(idJuego);
+            var juego = await juegoService.ObtenerJuegoPorIdAsync(elemento.JuegoId);
+            ViewData["Breadcrumbs"] = new List<BreadcrumbItem>
+            {
+                new BreadcrumbItem("Home", Url.Action("Index", "Home")),
+                new BreadcrumbItem(juego.Nombre, Url.Action("Juego", "Home", new { id = juego.Id })),
+                new BreadcrumbItem("Items", Url.Action("Items", "Home", new { id = int.Parse(idJuego) })),
+                new BreadcrumbItem("Nuevo Item", null)
+            };
+            
+            return await Task.FromResult(View("CRUD/CrearItem", elemento));
+        }
+        else if (tipo == "Truco")
+        {
+            var elemento = new Truco();
+            elemento.JuegoId = int.Parse(idJuego);
+            var juego = await juegoService.ObtenerJuegoPorIdAsync(elemento.JuegoId);
+            ViewData["Breadcrumbs"] = new List<BreadcrumbItem>
+            {
+                new BreadcrumbItem("Home", Url.Action("Index", "Home")),
+                new BreadcrumbItem(juego.Nombre, Url.Action("Juego", "Home", new { id = juego.Id })),
+                new BreadcrumbItem("Trucos", Url.Action("Trucos", "Home", new { id = int.Parse(idJuego) })),
+                new BreadcrumbItem("Nuevo Truco", null)
+            };
+            
+            return await Task.FromResult(View("CRUD/CrearTruco", elemento));
+        }
+        else
+        {
+            return RedirectToAction("Mensaje", new { mensaje = "Tipo de elemento no válido" });
+        }
+    }
+
+
+    [HttpPost]
+    [Authorize(Roles = "Admin")]
+    [AutoValidateAntiforgeryToken]
+    public async Task<IActionResult> CrearJuego(JuegoViewModel juegovm)
+    {
         // Manejar la subida de la imagen
         if (juegovm.ImagenFile != null)
         {
             var nombrearchivo = $"{Guid.NewGuid()}_{juegovm.ImagenFile.FileName}";
             var contentType = juegovm.ImagenFile.ContentType;
-            if(string.IsNullOrEmpty(contentType))
+            if (string.IsNullOrEmpty(contentType))
             {
                 contentType = "application/octet-stream"; // Valor por defecto si no se proporciona
             }
             using (var stram = juegovm.ImagenFile.OpenReadStream())
             {
-                var url = await storageservice.UploadFileAsync(stram, nombrearchivo, contentType);   
+                var url = await storageservice.UploadFileAsync(stram, nombrearchivo, contentType);
                 juegovm.Imagen = url; // Guardar la URL de la imagen en el modelo
             }
         }
@@ -491,39 +609,7 @@ public class HomeController : Controller
 
     }
 
-    [HttpPost]
-    [Authorize(Roles = "Admin")]
-    [AutoValidateAntiforgeryToken]
-    public async Task<IActionResult> CrearElemento(string tipo, string idJuego)
-    {
-        if (tipo == "Juego")
-        {
-            var elemento = new JuegoViewModel();
-            return await Task.FromResult(View("CRUD/CrearJuego", elemento));
-        }
-        else if (tipo == "Mision")
-        {
-            var elemento = new MisionViewModel();
-            elemento.idJuego = int.Parse(idJuego);
-            return await Task.FromResult(View("CRUD/CrearMision", elemento));
-        }
-        else if (tipo == "Item")
-        {
-            var elemento = new ItemViewModel();
-            elemento.JuegoId = int.Parse(idJuego);
-            return await Task.FromResult(View("CRUD/CrearItem", elemento));
-        }
-        else if (tipo == "Truco")
-        {
-            var elemento = new Truco();
-            elemento.JuegoId = int.Parse(idJuego);
-            return await Task.FromResult(View("CRUD/CrearTruco", elemento));
-        }
-        else
-        {
-            return RedirectToAction("Mensaje", new { mensaje = "Tipo de elemento no válido" });
-        }
-    }
+
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
@@ -536,22 +622,53 @@ public class HomeController : Controller
 
             if (tipo == "Juego")
             {
+                ViewData["Breadcrumbs"] = new List<BreadcrumbItem>
+                {
+                    new BreadcrumbItem("Home", Url.Action("Index", "Home")),
+                    new BreadcrumbItem("Modificar Juego", null)
+                };
                 var elemento = await juegoService.ObtenerJuegoPorIdAsync(idelemento);
                 return await Task.FromResult(View("CRUD/ModificarJuego", elemento));
             }
             else if (tipo == "Mision")
-            {
+            {                
                 var elemento = await misionService.ObtenerMisionesPorIdAsync(idelemento);
+                var juego = await juegoService.ObtenerJuegoPorIdAsync(elemento.JuegoId);
+                ViewData["Breadcrumbs"] = new List<BreadcrumbItem>
+                {
+                    new BreadcrumbItem("Home", Url.Action("Index", "Home")),
+                    new BreadcrumbItem(juego.Nombre, Url.Action("Juego", "Home", new { id = elemento.JuegoId })),
+                    new BreadcrumbItem("Misiones", Url.Action("Misiones", "Home", new { id = elemento.JuegoId })),
+                    new BreadcrumbItem(elemento.Nombre, Url.Action("Mision", "Home", new { id = elemento.Id ,idjuego = elemento.JuegoId })),
+                    new BreadcrumbItem("Modificar Mision", null)
+                };
                 return await Task.FromResult(View("CRUD/ModificarMision", elemento));
             }
             else if (tipo == "Item")
             {
                 var elemento = await itemService.ObtenerItemPorIdAsync(idelemento);
+                var juego = await juegoService.ObtenerJuegoPorIdAsync(elemento.JuegoId);
+                ViewData["Breadcrumbs"] = new List<BreadcrumbItem>
+                {
+                    new BreadcrumbItem("Home", Url.Action("Index", "Home")),
+                    new BreadcrumbItem(juego.Nombre, Url.Action("Juego", "Home", new { id = elemento.JuegoId })),
+                    new BreadcrumbItem("Items", Url.Action("Items", "Home", new { id = elemento.JuegoId })),
+                    new BreadcrumbItem(elemento.Nombre, Url.Action("Item", "Home", new { id = elemento.Id ,idjuego = elemento.JuegoId })),
+                    new BreadcrumbItem("Modificar Item", null)
+                };
                 return await Task.FromResult(View("CRUD/ModificarItem", elemento));
             }
             else if (tipo == "Truco")
             {
                 var elemento = await trucoService.ObtenerTrucoPorIdAsync(idelemento);
+                var juego = await juegoService.ObtenerJuegoPorIdAsync(elemento.JuegoId);
+                ViewData["Breadcrumbs"] = new List<BreadcrumbItem>
+                {
+                    new BreadcrumbItem("Home", Url.Action("Index", "Home")),
+                    new BreadcrumbItem(juego.Nombre, Url.Action("Juego", "Home", new { id = elemento.JuegoId })),
+                    new BreadcrumbItem("Trucos", Url.Action("Trucos", "Home", new { id = elemento.JuegoId })),
+                    new BreadcrumbItem("Modificar Truco", null)
+                };
                 return await Task.FromResult(View("CRUD/ModificarTruco", elemento));
             }
             else
@@ -736,7 +853,7 @@ public class HomeController : Controller
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ModificarTruco(Truco trucovm)
     {
-        
+
         var truco = new Truco()
         {
             Id = trucovm.Id,

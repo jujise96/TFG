@@ -40,6 +40,30 @@
     </header>
     <div class="container">
         <main role="main" class="pb-3">
+
+            @* Breadcrumbs para facilitar la navegación *@
+            @if (ViewData["Breadcrumbs"] is List<TFG.Models.BreadcrumbItem> breadcrumbs && breadcrumbs.Any())
+            {
+                <nav aria-label="breadcrumb" class="mb-3">
+                    <ol class="breadcrumb">
+                        @foreach (var item in breadcrumbs)
+                        {
+                            <li class="breadcrumb-item @(item.IsActive ? "active" : "")" @(item.IsActive ? "aria-current=page" : "")>
+                                @if (item.Url != null && !item.IsActive)
+                                {
+                                    <a href="@item.Url">@item.Text</a>
+                                }
+                                else
+                                {
+                                    @item.Text
+                                }
+                            </li>
+                        }
+                    </ol>
+                </nav>
+            }
+
+
             @* Para indicar exitos o errores en nuevas vistas *@
             @if (TempData["MensajeExito"] != null)
             {
