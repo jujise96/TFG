@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/TFG.styles.css" asp-append-version="true" />
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+
 </head>
 <body>
     <header>
@@ -99,6 +101,45 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
+    <script>
+        $(document).ready(function() {
+          $('textarea.Campotextoenriquecido').summernote({
+            height: 200,
+            minHeight: null,
+            maxHeight: null,
+            focus: true,
+            toolbar: [
+              ['style', ['bold', 'italic', 'underline', 'clear']],
+              ['font', ['strikethrough', 'superscript', 'subscript']],
+              ['fontsize', ['fontsize']],
+              ['color', ['color']],
+              ['para', ['ul', 'ol', 'paragraph']],
+              ['height', ['height']],
+              ['insert', ['link', 'picture', 'video']],
+              ['view', ['fullscreen', 'codeview', 'help']]
+            ],
+            // INICIO: ESTILOS PARA LA FUENTE BLANCA EN TEMA OSCURO
+            callbacks: {
+                onInit: function() {
+                    // Solo ajusta el color del texto dentro del área de edición
+                    $(this).next().find('.note-editable').css('color', '#f8f9fa'); /* Letra blanca clara */
+                    // Opcional: Para el tema oscuro, también es buena idea ajustar la barra de herramientas si no quieres que se vea predeterminada
+                    $(this).closest('.note-editor').find('.note-toolbar').css({
+                        'background-color': '#495057', /* Fondo de la barra de herramientas oscuro */
+                        'border-color': '#6c757d'     /* Borde oscuro */
+                    }).find('button.note-btn').css('color', '#f8f9fa'); // Color de los íconos/botones en la barra de herramientas
+                }
+            }
+            // FIN: ESTILOS PARA LA FUENTE BLANCA
+          });
+        });
+    </script>
+
+
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
