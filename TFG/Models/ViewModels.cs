@@ -161,6 +161,7 @@ namespace TFG.Models
         public string Contrasena { get; set; }
         public string Codigo { get; set; }
         [AntiInjeciones]
+        [Display(Name = "Codigo de verificación")]
         public string IntentoCodigo { get; set; }
     }
 

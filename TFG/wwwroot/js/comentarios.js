@@ -195,7 +195,6 @@
 
             // --- Botón Enviar Respuesta ---
             if (target.classList.contains('btn-enviar-respuesta')) {
-                debugger;
                 const form = target.closest('.form-respuesta');
                 const padreId = target.dataset.comentarioPadreId;
                 const respuestaForm = target.closest('.form-respuesta');

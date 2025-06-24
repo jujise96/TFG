@@ -17,7 +17,7 @@
                 </form>
             }else{
             <form method="post" asp-controller="Home" asp-action="ModificarElemento" asp-route-tipo="Truco" asp-route-idelemento=@Model.JuegoId>
-                <button type="submit" class="btn btn-outline-secondary btn-sm">Modificar Item: @Model.Nombre</button>
+                <button type="submit" class="btn btn-outline-secondary btn-sm">Modificar Trucos: @Model.Nombre</button>
             </form>
             }
 
@@ -30,7 +30,7 @@
     <ul class="list-unstyled">
         <li><strong>Nombre:</strong> @Model.Nombre</li>
         <li><strong>IdElem:</strong> @Model.IdElem</li>
-        <li><strong>Descripción:</strong> @Model.Descripcion</li>
+        <li><strong>Descripción:</strong> @Html.Raw(Model.Descripcion)</li>
         <li>
             <strong>Trucos:</strong> <em>Para poder ingresar los siguientes trucos deberá pulsar la "tecla de grado ordinal" (la que se usa para el carácter "º")</em>
             @if (!string.IsNullOrEmpty(Model.Trucos))
